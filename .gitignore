@@ -1,0 +1,11 @@
+
+
+# IDE directories
+./vscode
+./vs
+
+
+# Binaries
+*.exe
+*.lib
+*.o
