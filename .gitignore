@@ -1,8 +1,8 @@
 
 
 # IDE directories
-./vscode
-./vs
+/.vscode
+/.vs
 
 
 # Binaries
