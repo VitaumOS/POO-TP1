@@ -1,0 +1,49 @@
+\documentclass[10pt]{article}
+
+
+% Cover information
+% ----------------------
+\author{nothing}
+\date{\today}
+\title{The Databases}
+
+
+% Mathematics
+% ----------------
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+
+\usepackage{geometry}
+\geometry{a4paper}
+
+
+% --------------------
+\begin{document}
+\maketitle
+
+\begin{centering}
+\textbf{Abstract} \small
+\vspace{.2cm}
+
+As the system inherently have to store information about state, it is natural to have attached to it databases. As such, the system's databases are hereby detailed and discussed appropriately.
+
+\vspace{.5cm}
+\end{centering}
+
+
+\section{Introduction}
+
+There are three main groups of information that the system needs to track. Those are, the \textit{clients}, the \textit{global service orders}, and the \textit{vehicle orders}. By the program's specification, the \textit{clients} are registered by the \textit{seller} together with its \textit{vehicles} passive of service. At the step of ordering a service, the order is attached to the \textit{client} and remains open on the system until him allows the service to after a mechanic worker to finish it.
+
+Impose the following notation for the upcoming discussion. Say that the workshop's garage can handle up to \(V\) vehicles at a time, that the client can register up to \(v\) vehicles, that the client can have at its maximum \(s\) open services. Say also that the workshop's global count of services and clients are \(S^*\) and \(C^*\), respectively.
+
+As it turns out, a very common operation.
+
+
+
+\end{document}

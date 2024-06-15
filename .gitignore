@@ -1,11 +1,17 @@
 
-
 # IDE directories
 /.vscode
 /.vs
+
+
+# LaTeX byproducts
+*.log
+*.aux
+*.synctex.gz
 
 
 # Binaries
 *.exe
 *.lib
 *.o
+

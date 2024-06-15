@@ -8,11 +8,12 @@
 typedef enum {
     BUDGET,
     MAINTENANCE,
-} SERICE_ORDER_REASON;
+} SERVICE_ORDER_REASON;
 
 struct ServiceOrder {
-    int id;
-    SERICE_ORDER_REASON reason_order;
+    int id         : 31;
+    bool approved  : 1;
+    SERVICE_ORDER_REASON reason_order;
     char name_client[NAMESIZE];
     char issue_description[NAMESIZE];
 };
