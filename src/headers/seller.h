@@ -3,26 +3,27 @@
 */
 
 
-
 #ifndef _SELLER_HEADER_
 #define _SELLER_HEADER_
 
 
 #include "worker.h"
 #include "client.h"
-#include "vehicle.h"
+#include "databases.h"
 
 
 class Seller: public Worker {
 private:
-    void RegisterClient(Client client, Vehicle vehicle);
-    void GenerateWorkOrder(void);
-    void WorkOrder_Aprove(void);
-    void WorkOrder_Close(void);
+    
     
 public:
-    Seller(void);
+    Seller(SO_Manager * so);
     ~Seller(void);
+
+    bool RegisterClient(Client client);
+
+    bool ServiceOrder_Approve(id_t &so_id);
+    bool ServiceOrder_Close(id_t &so_id);
 };
 
 

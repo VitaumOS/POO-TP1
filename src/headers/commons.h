@@ -3,9 +3,14 @@
 
 
 /*  Defines the standard string size*/
-#define NAMESIZE    64
-#define MAX_VEHICLE 8
-#define MAX_ORDERS 16
+#define NAMESIZE    		64
+
+/*	*/
+#define DESCRIPTIONSIZE 	256
+
+#define MAX_PIECES			8
+#define MAX_VEHICLE 		8
+#define MAX_ORDERS 			16
 
 typedef uint64_t id_t;
 

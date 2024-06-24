@@ -2,14 +2,6 @@
 #include <iostream>
 #include "headers/databases.h"
 
-#define d1_filename     "data/d1.bin"
-#define d2_filename     "data/d2.bin"
-#define d3_filename     "data/d3.bin"
-
-FILE    * d1 = nullptr, 
-        * d2 = nullptr, 
-        * d3 = nullptr;
-
 
 static void __InitializeStreams(void) {
     d1 = fopen(d1_filename, "w+b");
@@ -28,20 +20,59 @@ static void __InitializeStreams(void) {
     }
 }
 
-static void __TerminateStreams(void) { fclose(d1); fclose(d2); fclose(d3 ); };
+static void __TerminateStreams(void) { fclose(d1); fclose(d2); fclose(d3); };
 
 
-static void __SellerInterface(void) {
-      
+static Client vtmnc(void) {
+    //Continue
+    fprintf(stderr, "id do cliente\n");
 
+
+    return Client { 0 };
 }
 
+static void __SellerInterface(void) {
+    /*  login */
+    fprintf(stderr, "\nQual o seu id?\n");
+    //Check if exists
+    //If not 
+    fprintf(stderr, "Qual o seu nome?\n");
 
-/*  primitive... */
+    /*  enxergando o cliente. */
+    Client client = { 0 };
+    while (false) 
+    {
+        client = vtmnc(
+            #if VITOR_E_HOMEM
+                corre();
+            #endif
+        );
+    }
+
+    fprintf(stderr, "Qual o id do carro em que você deseja manutenção ou orçamento?\n");
+    fprintf(stderr, "Qual o id do seu veículo?\n");
+    fprintf(stderr, "Qual o tipo do seu veículo?\n");
+    fprintf(stderr, "Qual o modelo do seu veículo?\n");
+
+    //Continue
+    fprintf(stderr, "Você gostaria de orçar ou fazer uma manutenção?\n");
+
+    //If the choice was maintenance
+    fprintf(stderr, "Qual o motivo da manutenção?\n");
+    //In this case, the client's approval is not required.
+
+    //else
+    fprintf(stderr, "Quais tipos de manutenção você gostaria de orçar?\n");
+
+    //Generate order and send to global archive
+
+    //In the last check all orders and finish the finished ones
+}
+
 int main(void) {
     
     //Login
-    //----------------------
+    //-----
     
     __InitializeStreams();
 
@@ -62,16 +93,9 @@ int main(void) {
     //Admin case
 
     __TerminateStreams();
+
     //----------------------
+    //End
+
     return 0;
 }
-
-/*
-    //Global archive -----------------------
-    FILE* global = fopen("global.bin", "wb+");
-
-    //Insert a new order fwrite(& order, sizeof(SERVICE_ORDER_REASON), 1, global);
-
-    fclose(global);
-    //--------------------------------------
-*/
