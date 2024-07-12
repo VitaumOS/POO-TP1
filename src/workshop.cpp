@@ -1,101 +1,50 @@
+/*  <src/workshop.cpp>
 
+    The entry point for the system. */
+
+
+
+#include <stdio.h>
 #include <iostream>
-#include "headers/databases.h"
+#include <login.h>
+#include <databases.h>
 
 
-static void __InitializeStreams(void) {
-    d1 = fopen(d1_filename, "w+b");
-    if (d1 == NULL) {
-        printf("failed initiliazing d1...\n");
-    }
-
-    d2 = fopen(d1_filename, "w+b");
-    if (d2 == NULL) {
-        printf("failed initiliazing d2...\n");
-    }
-    
-    d3 = fopen(d1_filename, "w+b");
-    if (d3 == NULL) {
-        printf("failed initiliazing d3...\n");
-    }
-}
-
-static void __TerminateStreams(void) { fclose(d1); fclose(d2); fclose(d3); };
+	
 
 
-static Client vtmnc(void) {
-    //Continue
-    fprintf(stderr, "id do cliente\n");
+/*
+	printf("%d:%d:%d|%d:%d:%d\n",
+		(int) the_date.day,
+		(int) the_date.month + 1,
+		(int) the_date.year + 1900,
+		(int) the_date.hour,
+		(int) the_date.minutes,
+		(int) the_date.seconds);
 
 
-    return Client { 0 };
-}
+*/
 
-static void __SellerInterface(void) {
-    /*  login */
-    fprintf(stderr, "\nQual o seu id?\n");
-    //Check if exists
-    //If not 
-    fprintf(stderr, "Qual o seu nome?\n");
 
-    /*  enxergando o cliente. */
-    Client client = { 0 };
-    while (false) 
-    {
-        client = vtmnc(
-            #if VITOR_E_HOMEM
-                corre();
-            #endif
-        );
-    }
-
-    fprintf(stderr, "Qual o id do carro em que você deseja manutenção ou orçamento?\n");
-    fprintf(stderr, "Qual o id do seu veículo?\n");
-    fprintf(stderr, "Qual o tipo do seu veículo?\n");
-    fprintf(stderr, "Qual o modelo do seu veículo?\n");
-
-    //Continue
-    fprintf(stderr, "Você gostaria de orçar ou fazer uma manutenção?\n");
-
-    //If the choice was maintenance
-    fprintf(stderr, "Qual o motivo da manutenção?\n");
-    //In this case, the client's approval is not required.
-
-    //else
-    fprintf(stderr, "Quais tipos de manutenção você gostaria de orçar?\n");
-
-    //Generate order and send to global archive
-
-    //In the last check all orders and finish the finished ones
-}
-
+//
+/*  (Program specs.) */
 int main(void) {
-    
-    //Login
-    //-----
-    
-    __InitializeStreams();
+    /*  Poor login screen testing... */
+#   define LOGIN_SCREEN_TEST   false
 
-    //Seller case
-    __SellerInterface();
-    
-    //Client register and check if it exists
-    //Generate an order and add in global archive
-    //Check if client agree with pending orders
+#   if LOGIN_SCREEN_TEST
+    LoginScreen login_screen(50, 25, (rgb) { 43, 43, 43 }, (rgb) { 200, 200, 225 });
+    login_screen.render();
 
-    //----------------------
-    
-    //Mechanic case
+    login_screen.go_to_abs((50 >> 3) + 12, (25 >> 1) - 2);
+    login_screen.capture_username();
+    login_screen.capture_password();
+#   endif // LOGIN_SCREEN_TEST
 
+    SO_Manager so;
+	
+	
 
-    //----------------------
-
-    //Admin case
-
-    __TerminateStreams();
-
-    //----------------------
-    //End
 
     return 0;
 }

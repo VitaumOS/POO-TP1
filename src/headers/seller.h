@@ -7,8 +7,7 @@
 #define _SELLER_HEADER_
 
 
-#include "worker.h"
-#include "client.h"
+#include "user.h"
 #include "databases.h"
 
 

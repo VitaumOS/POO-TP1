@@ -1,5 +1,5 @@
-#ifndef _WORKER_HEADER_
-#define _WORKER_HEADER_
+#ifndef _USER_HEADER_
+#define _USER_HEADER_
 
 
 #include "commons.h"
@@ -11,14 +11,14 @@ typedef enum {
 } SYSTEM_LOGIN_CODE;
 
 
-class Worker {
+class User {
 private:
     int id      : 31;
     bool logged : 1;
 
 public:
-    Worker(int id); 
-    ~ Worker(void);
+    User(int id);
+    ~ User(void) { };
     
     virtual SYSTEM_LOGIN_CODE login(void) {
         this -> logged = true;
@@ -27,4 +27,4 @@ public:
 };
 
 
-#endif // _WORKER_HEADER_
+#endif // _USER_HEADER_
