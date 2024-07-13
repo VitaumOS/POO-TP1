@@ -20,9 +20,7 @@
 typedef uint64_t id_t;
 
 
-// Ref:
-// https://www.ibm.com/docs/en/zos/3.1.0?topic=functions-timetime64-determine-current-utc-time
-
+// Ref: https://www.ibm.com/docs/en/zos/3.1.0?topic=functions-timetime64-determine-current-utc-time
 
 typedef struct _Date { uint8_t day, month, year, hour, minutes, seconds; } Date;
 

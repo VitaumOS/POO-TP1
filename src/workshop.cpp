@@ -3,35 +3,19 @@
     The entry point for the system. */
 
 
-
 #include <stdio.h>
 #include <iostream>
 #include <login.h>
 #include <databases.h>
-
-
-	
-
-
-/*
-	printf("%d:%d:%d|%d:%d:%d\n",
-		(int) the_date.day,
-		(int) the_date.month + 1,
-		(int) the_date.year + 1900,
-		(int) the_date.hour,
-		(int) the_date.minutes,
-		(int) the_date.seconds);
-
-
-*/
+#include <string.h>
 
 
 //
 /*  (Program specs.) */
 int main(void) {
-    /*  Poor login screen testing... */
-#   define LOGIN_SCREEN_TEST   false
 
+    /*  Poor login screen testing... */
+#   define LOGIN_SCREEN_TEST		false
 #   if LOGIN_SCREEN_TEST
     LoginScreen login_screen(50, 25, (rgb) { 43, 43, 43 }, (rgb) { 200, 200, 225 });
     login_screen.render();
@@ -40,10 +24,31 @@ int main(void) {
     login_screen.capture_username();
     login_screen.capture_password();
 #   endif // LOGIN_SCREEN_TEST
+	
+#	define CLIENT_GENERATION_TEST	true
+#	if CLIENT_GENERATION_TEST
 
-    SO_Manager so;
-	
-	
+	ClientManager client_manager;
+	client_manager.register_client("Hebert", (struct Vehicle) { .type = "tipo-doido", .model = "modelo-doido", .mileage = 100 }, 9);
+
+
+#	endif // CLIENT_GENERATION_TEST
+
+#	define SO_GENERATION_TEST		false
+#	if SO_GENERATION_TEST
+    SO_Manager so_manager;
+
+	ServiceOrder SO;
+	so_manager.get_new_order(&SO);
+	strcpy(SO.issue_description, "quebrou ne fi");
+
+	SO.client_id = { 0, 0 };
+	SO.hardware_price = 10000;
+	SO.labor_price = 10000;
+	so_manager.set_new_order(&SO);
+#	endif // SO_GENERATION_TEST
+
+
 
 
     return 0;
