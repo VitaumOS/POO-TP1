@@ -267,7 +267,7 @@ inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder 
 	}
 	
 	// Date
-	fprintf(_OutputStream, " +", _SO->id);
+	fprintf(_OutputStream, " +"); // _SO->id
 	fprint_date(_OutputStream, _SO->creation_date);
 	fprintf(_OutputStream, ", *");
 	fprint_date(_OutputStream, _SO->update_date);
@@ -277,7 +277,7 @@ inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder 
 		_SO->client_id.person_id, _SO->client_id.vehicle_id);
 
 	fprintf(_OutputStream, "hardware=R$%05.2lf, labor=R$%05.2lf",
-		((double) _SO->hardware_price) / 100.0L, ((double) _SO->labor_price) / 100.0L);
+		((double) _SO->hardware_price) / ((double) 100.0), ((double) _SO->labor_price) / ((double) 100.0));
 }
 
 SO_Manager::SO_Manager(void) : Database(SO_FILENAME), client_manager() {
@@ -295,7 +295,7 @@ SO_Manager::~SO_Manager(void) {
 	In that sense, the passed SO is pre-loaded with the new order template, to be
 	filled elsewhere.
 
-	Once filled, it will be followed by <set_new_order> so it can correctly go to the
+	Once filled, it will be followed by <create_new_order> so it can correctly go to the
 	database. */
 bool SO_Manager::get_new_order(struct ServiceOrder * return_so)
 {
@@ -309,7 +309,7 @@ bool SO_Manager::get_new_order(struct ServiceOrder * return_so)
 		.client_id = { 0 },
 		.issue_description = "undef",
 		.budget = {
-			.n_pieces = 0,  .pieces = { (PIECE_ID) 0 }, .prices = { 0 } 
+			.n_pieces = 0,  .pieces = { (PIECE_ID) 0 }
 			},
 
 		.labor_price = 0,
@@ -334,7 +334,7 @@ bool SO_Manager::get_new_order(struct ServiceOrder * return_so)
 		. SO's issue-description to be large enough (>4).
 		
 	Returns success; fails in case of the SO validity and IO operations. */
-bool SO_Manager::set_new_order(const struct ServiceOrder * so)
+bool SO_Manager::create_new_order(const struct ServiceOrder * so)
 {
 	// Validating the SO's id:
 	// It has to have the next id in the database.
@@ -354,7 +354,7 @@ bool SO_Manager::set_new_order(const struct ServiceOrder * so)
 
 	// Validating the issue-description:
 	// The description has to be bigger enough.
-	volatile int i = 0;
+	int i = 0;
 	while (so->issue_description[i ++] && (i <= 4));
 	if (i < 4)
 	{
@@ -389,16 +389,46 @@ bool SO_Manager::set_new_order(const struct ServiceOrder * so)
 	}
 
 	stream_header.next_id ++;
-
 	return true;
 }
 
 
 
+/*	Advances a SO to its next stage. 
 
-bool SO_Manager::update_order(id_t id, const struct ServiceOrder * so)
+	\param src_so: The new SO's state.
+	\param nasd: asd
+	
+	\return Returns success in advancing the SO to its next stage in the database.
+	Fails in case of IO-related operations, and in case the <src_so> state
+	being incoherent. */
+bool SO_Manager::advance_order(id_t id, const struct ServiceOrder * src_so)
 {
-	printf("[%s] id=%llu, so=%p\n", __func__, id, so);
+	// Pre-validating <src_so> state.
+	if (src_so->id != id)	// same id...
+		return false;
+
+	else if (id >= stream_header.next_id) // in this case, this should rather be a new-order.
+		return false;
+
+	struct ServiceOrder old_so; 
+	if (! read_element(id, &old_so)) 
+		return false;
+
+	if (src_so->creation_date != old_so.creation_date)
+		return false;
+
+	else if (src_so->client_id.id != old_so.client_id.id)
+		return false;
+
+	else if (src_so->stage != old_so.stage)
+		return false;
+
+	Date date_of_now;
+	if (! get_date(date_of_now))
+		return false;
+
+
 	return false;
 }
 

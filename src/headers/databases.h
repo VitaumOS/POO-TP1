@@ -93,7 +93,9 @@ constexpr const char * CLIENTDB_FILENAME = "data/clients.bin";
 
 // In the address space of 64 bits:
 // "how many bits there are reserved for identifying the client's (vehicle) id?"
-#define VEHICLE_ID_BITS     4u
+constexpr uint64_t VEHICLE_ID_BITS      = 4ULL;
+
+constexpr uint64_t VEHICLES_PER_PERSON = (1ULL << VEHICLE_ID_BITS);
 
 
 /*  A type that represents the ID of the client.
@@ -112,7 +114,7 @@ typedef union {
 /*  Represents a Client.
     
     Here, "client" doesn't refer only to the person associated with it,
-    but rather to it AND its vehicle. */
+    but rather to it AND his vehicle. */
 struct Client {
     client_id_t id; // Client's ID.
 
@@ -159,22 +161,30 @@ public:
 
 typedef id_t so_id_t;
 
+/*	The string-size a SO's description have. */
+constexpr uint64_t SO_DESCRIPTION_SIZE = 64ULL;
+
 /*  The stream over which the service-orders will be located at. */
 constexpr const char * SO_FILENAME = "data/service-orders.bin";
 
 
-typedef enum {
-    SO_OPEN,        // If a SO was open.
-    SO_BUDGET,      // If a SO is budgeted.
-    SO_MAINTENANCE, // If a SO is over maintenance.
-    SO_CLOSED,      // If a SO is closed.
-} SERVICE_ORDER_STAGES;
+/*  The states a service-order can be at.
+    
+    A SO will always start as "OPEN".
+    The lifetime of a SO can have the following sequences running tree:
+    SO_OPEN -> SO_BUDGET -> SO_MAINTENANCE -> SO_CLOSED
+      \                 \
+       --> SO_CANCELED   \
+                          ---> SO_CLOSED_BUDGET                         */
+typedef enum _SOS {
+    SO_OPEN,            // SO is open.
+    SO_BUDGET,          // SO is (open and) budgeted.
+    SO_MAINTENANCE,     // SO is (open, budget and) over maintenance.
 
-struct PartsBudget {
-    uint8_t n_pieces;               
-    PIECE_ID pieces[MAX_PIECES];    
-    currency_t prices[MAX_PIECES];       
-};
+    SO_CLOSED,          // Closed SO. SO closed from "maintenance" state.
+    SO_CANCELED,        // Closed SO. SO closed from "open" state.
+    SO_CLOSED_BUDGET,   // Closed SO. SO closed from "budget" state.
+} SERVICE_ORDER_STAGE;
 
 
 typedef id_t so_id_t;
@@ -183,10 +193,10 @@ typedef id_t so_id_t;
 struct ServiceOrder {
     // Identification.
     so_id_t id;                     // SO's sequential id.
-    SERVICE_ORDER_STAGES stage : 2; // The stage at which the SO is at.
+    SERVICE_ORDER_STAGE stage : 3;  // The stage at which the SO is at.
     client_id_t client_id;          // The client's ID for the SO.
 
-    char issue_description[DESCRIPTION_SIZE];
+    char issue_description[SO_DESCRIPTION_SIZE];
     
     // Budget and pricing.
     struct PartsBudget budget;  // Contains the budget information for all the parts.
@@ -198,7 +208,7 @@ struct ServiceOrder {
     Date update_date;   // The date at which the SO was last updated.
 };
 
-class SO_Manager : Database <ServiceOrder> {
+class SO_Manager : Database <struct ServiceOrder> {
 private:
     /*  File stream */
 
@@ -211,31 +221,20 @@ private:
 
         for (uint8_t i = 0; i < budget.n_pieces; i ++)
         {
-            S += budget.prices[i];
+            S += hash_piece_price(budget.pieces[i]);
         }
 
         return S >> 2;
     }
-
-    inline bool read_element(id_t index, struct ServiceOrder * return_so) const {
-        fseek(stream, sizeof(stream_header) + index * sizeof(struct ServiceOrder), SEEK_SET);
-        return fread(return_so, sizeof(struct ServiceOrder), 1, stream) > 0;
-    }
-
-    inline bool write_element(id_t index, const struct ServiceOrder * so) {
-        fseek(stream, sizeof(stream_header) + index * sizeof(struct ServiceOrder), SEEK_SET);
-        return fwrite(so, sizeof(struct ServiceOrder), 1, stream) > 0;
-    }
-
     
 public:
     SO_Manager(void);
     ~SO_Manager(void);
 
     bool get_new_order(struct ServiceOrder * return_so);
-    bool set_new_order(const struct ServiceOrder * so);
+    bool create_new_order(const struct ServiceOrder * so);
 
-    bool update_order(id_t id, const struct ServiceOrder * so);
+    bool advance_order(id_t id, const struct ServiceOrder * src_so);
     bool close_order(id_t id);
 };
 

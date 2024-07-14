@@ -46,7 +46,9 @@ int main(void) {
 	SO.client_id.person_id = 2;
 	SO.hardware_price = 10000;
 	SO.labor_price = 10000;
-	so_manager.set_new_order(&SO);
+	so_manager.create_new_order(&SO);
+
+
 #	endif // SO_GENERATION_TEST
 
 
