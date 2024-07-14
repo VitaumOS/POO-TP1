@@ -3,8 +3,10 @@
 */
 
 #include "databases.h"
-#include <stdio.h>
-#include <time.h>
+#include <iostream>	// cin / cout
+#include <time.h>	// time, localtime
+#include <string.h>	// for strcpy
+#include <assert.h>
 
 
 /*	Date
@@ -38,19 +40,48 @@ static void fprint_date(FILE * const _PrintStream, const Date & the_date)
 /*	Database
 	======== */
 
-#define DEBUG_DS_CONSTRUCTOR_DECONSTRUCTOR	true
+Database::Database(const char * filename) : filename(filename) {
+	init_succeeded = true;
+	stream_header.next_id = 0;
+	stream_header.item_qtt = 0;
+	stream = nullptr;
 
-#if DEBUG_DS_CONSTRUCTOR_DECONSTRUCTOR
-#define D_DS_CONSTRUCTOR()		printf("[%s]+\n", __func__)
-#define D_DS_DECONSTRUCTOR()	printf("[%s]-\n", __func__)
+	if (((stream = fopen(filename, "r+b")) == nullptr) && (! init_stream())) {
+		init_succeeded = false;
+		std::cerr << "Couldn't initialize stream" << std::endl;
+		return;
+	}
 
-#else
-#define D_DS_CONSTRUCTOR()
-#define D_DS_DECONSTRUCTOR()
+	/*	If reading the stream-header fails, then probably the database is empty. 
+		In that case, it is reset. */
+	if (! read_stream_header())
+	{
+		// Checking if the stream is actually empty.
+		if ((! fseek(stream, 0, SEEK_END)) && ftell(stream) == 0)
+			reset_database();
+	}
 
-#endif // DEBUG_DS_CONSTRUCTOR_DECONSTRUCTOR
+	printf("<%s> last id: %llu\n", filename, stream_header.next_id);
+};
 
-bool Database::write_stream_header(void) {
+Database::~Database(void) {
+	if (! write_stream_header())
+		std::cerr << "[%s]: STREAM HEADER COULDN'T BE WRITTEN!" << std::endl;
+
+	fclose(stream);
+}
+
+inline bool Database::init_stream(void) {
+	return (stream = fopen(filename, "w+b")) != nullptr; 
+}
+
+void Database::reset_database(void) {
+	rewind(stream);
+	stream_header.next_id = 0;
+	fwrite(&stream_header, sizeof(stream_header), 1, stream);
+}
+
+bool Database::write_stream_header(void) const {
 	rewind(stream);
 	return fwrite(&stream_header, sizeof(stream_header), 1, stream) > 0;
 };
@@ -60,78 +91,19 @@ bool Database::read_stream_header(void) {
 	return fread(&stream_header, sizeof(stream_header), 1, stream) > 0;
 };
 
-Database::Database(const char * filename) : filename(filename) {
-	D_DS_CONSTRUCTOR();
-
-	init_succeeded = true;
-	stream_header.next_id = 0;
-	stream_header.item_qtt = 0;
-	stream = nullptr;
-
-	if (((stream = fopen(filename, "r+b")) == nullptr) && (! create_stream())) {
-		init_succeeded = false;
-		fprintf(stderr, "COULDN'T INITIALIZE STREAM <%s>\n", filename);
-		return;
-	}
-
-	/*	If reading the stream-header fails, resets the database. */
-	if (! read_stream_header())
-	{
-		reset_database();
-	}
-
-	printf("<%s> last id: %llu\n", filename, stream_header.next_id);
-};
-
-Database::~Database(void) {
-	D_DS_DECONSTRUCTOR();
-
-	if (! write_stream_header())
-	{
-		fprintf(stderr, "[%s]: STREAM HEADER COULDN'T BE WRITTEN!\n", __func__);
-	}
-
-	fclose(stream);
-}
-
-bool Database::create_stream(void) {
-	return (stream = fopen(filename, "w+b")) != nullptr; 
-}
-
-
-
 
 
 /*	Client
 	====== */
 
 ClientManager::ClientManager(void) : Database(CLIENTDB_FILENAME) {
-	D_DS_CONSTRUCTOR();
-
 	print_database();
-
-	/*
-	fseek(stream, 0, SEEK_END);
-	long pos = ftell(stream);
-	if (pos < 0)
-	{
-		printf("SOMETHING'S VERY WRONG!!!\n");
-	}
-	last_index = (((id_t) pos) - sizeof(stream_header)) / sizeof(struct Client);
-	printf("LAST_INDEX: %llu\n", last_index);
-	*/
 };
 
-ClientManager::~ClientManager(void)
-{
-	D_DS_DECONSTRUCTOR();
-
+ClientManager::~ClientManager(void) {
 	print_database();
 }
 
-
-/*	Prints a database part into an output stream.
-	Prints it on its entirety, and on stdout, by default. */
 void ClientManager::print_database(FILE * _PrintStream, size_t _From, size_t _To) const {
 	if (_To == 0)
 		_To = stream_header.next_id;
@@ -174,42 +146,9 @@ int64_t ClientManager::fetch_person_id(id_t person_id, size_t _From) {
 	return -1;
 }
 
-#include <string.h>
-/*	Register a new client - with a person not yet registered - on the database.
+
+/*	Register a new client - with a person registered or yet not - on the database.
 	Returns success; in case of fail, the state of the database won't change. */
-bool ClientManager::register_new_person(const char name[NAME_SIZE], const struct Vehicle vehicle)
-{
-	// Marking the time of action.
-	Date date_of_now;
-	if (! get_date(date_of_now))
-	{
-		fprintf(stderr, "[%s] <- (false): Date...\n", __func__);
-		return false;
-	}
-
-	// Initializing the client.
-	struct Client client;
-	client.id.person_id = stream_header.next_id;	// receives the next person's id.
-	strcpy(client.name, name);
-	client.vehicle = vehicle;
-	client.registry_date = date_of_now;
-
-	// Determining the vehicle's id.
-	int64_t index;	// tracks the index from fetching the person's id.
-	uint8_t vehicle_index = 0;	// "counts" occurrences of the person on the DB.
-	while ((index = fetch_person_id(client.id.person_id)) >= 0)
-		vehicle_index ++;
-	
-	if (index == -2) {
-		fprintf(stderr, "Error on fetching\n");
-		return false;
-	}
-
-	client.id.vehicle_id = vehicle_index;
-	return write_item(client.id.id, &client) && 
-		(++ stream_header.next_id);
-}
-
 bool ClientManager::register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, id_t person_id) {
 	if (person_id == ((id_t) -1))
 		person_id = stream_header.next_id;
@@ -230,12 +169,12 @@ bool ClientManager::register_client(const char name[NAME_SIZE], const struct Veh
 	else if ((index == -1) && (vehicle_index == 0)) {
 		printf("Person [%llu] doesn't exists\n", person_id);
 
+		// Beyond not existing, the person's ID is not even the next on the sequence.
 		if (person_id != stream_header.next_id)
 		{
 			fprintf(stderr, "Invalid person id... (Expected %llu)\n", stream_header.next_id);
 			return false;
 		}
-		//return register_new_person(name, vehicle);
 	}
 
 	// exceeded the allowed number of vehicles for the person.
@@ -279,12 +218,10 @@ bool ClientManager::register_client(const char name[NAME_SIZE], const struct Veh
 	============== */
 
 SO_Manager::SO_Manager(void) : Database(SO_FILENAME), client_manager() {
-	D_DS_CONSTRUCTOR();
 }
 
 SO_Manager::~SO_Manager(void)
 {
-	D_DS_DECONSTRUCTOR();
 }
 
 

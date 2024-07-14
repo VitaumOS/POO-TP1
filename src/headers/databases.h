@@ -4,43 +4,64 @@
 
 #include "commons.h"
 #include "vehicle.h"
-#include <stdio.h.>
-#include <stdio.h>
+#include <stdio.h.> // FILE
 
 
 /*  Database
     ======== */
 
-/*  A class representing a homogeneous database manager. */
+/*  A class representing a homogeneous database manager. 
+    The homogeneous data are its "itens", and they're specified by their index. 
+    
+    The database is associated with a headed file-stream tracking the indexes. */
 class Database {
 private:
-    bool init_succeeded;
-    bool create_stream(void);
+    bool init_succeeded;    // Tracks if the database's initialization was successful.
+    bool init_stream(void); // Initializes (from empty) the file-stream - overwriting its occurrence.
+    void reset_database(void);  // Resets the file-stream.
     
-protected:
-    bool write_stream_header(void);
-    bool read_stream_header(void);
-
+    // The database's stream filename.
     const char * filename;
+
+protected:
+    // The database's file-stream.
     FILE * stream;
 
-    struct {
+    struct {    // Keeps overall information of the stream.
         id_t next_id;   // The next sequential ID to be filled on the database.
         id_t item_qtt;  // How many items does is the database holding.
     } stream_header;
+
+    /*  Reads a single item in the homogeneous database data-space.
+        The item is specified by its index; the item is written by reference.
+        Returns success; fails in case of IO sequencing. In case of fail, the stream
+        pointer state is undeterminated. */
+    template <typename ITEM_T> inline bool 
+    read_item(id_t index, ITEM_T * _DstItem) const {
+        return (fseek(stream, sizeof(stream_header) + index * sizeof(ITEM_T), SEEK_SET) == 0) && 
+            (fread(_DstItem, sizeof(ITEM_T), 1, stream) > 0);
+    }
+
+    /*  Writes a single item in the homogeneous database data-space.
+        The item is specified by its index; the item is written by reference.
+        Returns success; fails in case of IO sequencing. In case of fail, the stream
+        pointer state is undeterminated. */
+    template <typename ITEM_T> inline bool
+    write_item(id_t index, const ITEM_T * _SrcItem) const {
+        return (fseek(stream, sizeof(stream_header) + index * sizeof(ITEM_T), SEEK_SET) == 0) &&
+            (fwrite(_SrcItem, sizeof(ITEM_T), 1, stream) > 0);
+    }
+
+    bool read_stream_header(void);          // Reads the internal stream-header structure.
+    bool write_stream_header(void) const;   // Writes the internal stream-header structure.
 
 public:
     Database(const char * filename);
     ~Database(void);
 
+    /*  Returns if the database initialization was successfully done. 
+        In case of fail, the object shall not be used. */
     inline bool could_initialize(void) const { return init_succeeded; }
-
-    void reset_database(void) {
-        printf("resetting <%s>:(%p)\n", filename, stream);
-        rewind(stream);
-        stream_header.next_id = 0;
-        fwrite(&stream_header, sizeof(stream_header), 1, stream);
-    }
 };
 
 
@@ -49,71 +70,76 @@ public:
 
 constexpr const char * CLIENTDB_FILENAME = "data/clients.bin";
 
-// In the address space of 64 bits, "how many there are for identifying the client's (person) id?"
+// In the address space of 64 bits:
+// "how many bits there are reserved for identifying the client's (vehicle) id?"
 #define VEHICLE_ID_BITS     4u
 
-typedef uint32_t small_id_t;
 
+/*  A type that represents the ID of the client.
+    Structurally it is "id_t" number, onto which the bit-space is divided
+    into the person's and the vehicle's id. */
 typedef union {
-    id_t id;
-
+    id_t id;    // The overall numerical ID.
+    
     struct {
         id_t vehicle_id : VEHICLE_ID_BITS;
         id_t person_id  : (64u - VEHICLE_ID_BITS);
     };
-
 } client_id_t;
 
 
-typedef id_t so_id_t;
-
-
+/*  Represents a Client.
+    
+    Here, "client" doesn't refer only to the person associated with it,
+    but rather to it AND its vehicle. */
 struct Client {
-    client_id_t id;
+    client_id_t id; // Client's ID.
+
+    // Client-associated person's name.
+    // TODO: struct Person to contain it. (Scalability)
     char name[NAME_SIZE];
+
+    // Client-associated vehicle's information.
     struct Vehicle vehicle;
+
+    // The date at which the client was registered in the database.
     Date registry_date;
 };
 
+
+/*  A homogeneous database for the clients. */
 class ClientManager : Database {
-    /*  stream_header.last_id from <Database> will hold in this context
+    /*  stream_header.next_id from <Database> will hold in this context
         the last person's id. */
 
 private:
     friend class SO_Manager;
-    
-    inline bool read_item(id_t index, struct Client * return_client) const {
-        fseek(stream, sizeof(stream_header) + index * sizeof(struct Client), SEEK_SET);
-        return fread(return_client, sizeof(struct Client), 1, stream) > 0;
-    }
-
-    inline bool write_item(id_t index, const struct Client * client) const {
-        printf("[%s] index=%llu\n", __func__, index);
-        fseek(stream, sizeof(stream_header) + index * sizeof(struct Client), SEEK_SET);
-        return fwrite(client, sizeof(struct Client), 1, stream) > 0;
-    }
-
+   
 public:
     ClientManager(void);
     ~ClientManager(void);
 
+    // Returns what should be the next person's id on the client's database sequence.
     inline uint64_t get_next_person_id(void) const { return stream_header.next_id; };
 
+    /*  Represents the database onto an output stream, sectioned, from a start to an end
+    - (_From) and (_To) respectively. 
+        Prints it on its entirety, and on stdout, by default. */
     void print_database(FILE * _PrintStream = stdout, size_t _From = 0, size_t _To = 0) const;
 
+    /*	Returns the index of first occurrence of the person's id on the database, from a given
+    starting index (_From).
+        The return is (-1) in case of not founding; and (-2) in case of IO errors. */
     int64_t fetch_person_id(id_t person_id, size_t _From = 0);
 
 
-    bool register_new_person(const char name[NAME_SIZE], const struct Vehicle vehicle);
     bool register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, id_t person_id = ((id_t) - 1));
 };
 
 
-
-
-
 /*  Service Orders
     ============== */
+typedef id_t so_id_t;
 
 /*  The stream over which the service-orders will be located at. */
 constexpr const char * SO_FILENAME = "data/service-orders.bin";
