@@ -145,7 +145,7 @@ int64_t ClientManager::fetch_person_id(id_t person_id, size_t _From) {
 	}
 	return -1;
 }
-
+//
 
 /*	Register a new client - with a person registered or yet not - on the database.
 	Returns success; in case of fail, the state of the database won't change. */
