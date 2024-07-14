@@ -1,6 +1,11 @@
-/*	</databases.cpp>
+/*  <src/databases.cpp>
 
-*/
+	Defines the databases for the main application. */
+
+/*  Assignment part for @HexagonalUniverse.
+
+	Last update: 14/07/2024. */
+
 
 #include "databases.h"
 #include <iostream>	// cin / cout
@@ -10,7 +15,9 @@
 
 
 /*	Date
-	==== */
+	====
+	
+	(TODO: Move out) */
 
 static bool get_date(Date & the_date) {
 
@@ -37,10 +44,11 @@ static void fprint_date(FILE * const _PrintStream, const Date & the_date)
 }
 
 
-/*	Database
-	======== */
+/*	Database Template
+	================= */
 
-Database::Database(const char * filename) : filename(filename) {
+template <typename ElementType> 
+Database<ElementType>::Database(const char * filename) : filename(filename) {
 	init_succeeded = true;
 	stream_header.next_id = 0;
 	stream_header.item_qtt = 0;
@@ -64,66 +72,91 @@ Database::Database(const char * filename) : filename(filename) {
 	printf("<%s> last id: %llu\n", filename, stream_header.next_id);
 };
 
-Database::~Database(void) {
+template <typename ElementType>
+Database<ElementType>::~Database(void) {
 	if (! write_stream_header())
 		std::cerr << "[%s]: STREAM HEADER COULDN'T BE WRITTEN!" << std::endl;
 
 	fclose(stream);
 }
 
-inline bool Database::init_stream(void) {
+template <typename ElementType>
+inline bool Database<ElementType>::init_stream(void) {
 	return (stream = fopen(filename, "w+b")) != nullptr; 
 }
 
-void Database::reset_database(void) {
+template <typename ElementType>
+void Database<ElementType>::reset_database(void) {
 	rewind(stream);
 	stream_header.next_id = 0;
 	fwrite(&stream_header, sizeof(stream_header), 1, stream);
 }
 
-bool Database::write_stream_header(void) const {
-	rewind(stream);
-	return fwrite(&stream_header, sizeof(stream_header), 1, stream) > 0;
-};
-
-bool Database::read_stream_header(void) {
+template <typename ElementType>
+bool Database<ElementType>::read_stream_header(void) {
 	rewind(stream);
 	return fread(&stream_header, sizeof(stream_header), 1, stream) > 0;
 };
 
+template <typename ElementType>
+bool Database<ElementType>::write_stream_header(void) const {
+	rewind(stream);
+	return fwrite(&stream_header, sizeof(stream_header), 1, stream) > 0;
+};
+
+/*  Database Representation
+	----------------------- */
+
+template <typename ElementType>
+bool Database<ElementType>::print_database(FILE * _OutputStream, size_t _From, size_t _To)
+{
+	// _To = 0 will force printing the entire database.
+	if ((_To == 0) && (stream_header.next_id > 0))
+		_To = stream_header.next_id;
+
+	ElementType element_buffer;
+	
+	if (fseek(stream, sizeof(stream_header), SEEK_SET) != 0)
+		return false;
+	
+	size_t iterator = _From;
+	while ((iterator <= _To) && read_element(iterator ++, &element_buffer)) {
+		// not safe inside the loop yet*
+
+		fprintf(_OutputStream, "[%03llu] ", iterator - 1);
+		fprint_element(_OutputStream, &element_buffer);
+		fprintf(_OutputStream, "\n");
+	}
+
+	return iterator == (_To + 1);
+}
 
 
-/*	Client
-	====== */
+
+/*	Clients Database
+	================ */
+
+inline void ClientManager::fprint_element(FILE * _OutputStream, const struct Client * _Client)
+{
+	fprintf(_OutputStream, "[%06llu:%02d]: ",
+		_Client->id.person_id, _Client->id.vehicle_id);
+
+	fprint_date(_OutputStream, _Client->registry_date);
+	fprintf(_OutputStream, " <%s> com <%s:%s>",
+		_Client->name,
+		_Client->vehicle.type,
+		_Client->vehicle.model
+	);
+}
 
 ClientManager::ClientManager(void) : Database(CLIENTDB_FILENAME) {
+	std::cout << "Initial client database state:" << std::endl;
 	print_database();
 };
 
 ClientManager::~ClientManager(void) {
+	std::cout << "Final client database state:" << std::endl;
 	print_database();
-}
-
-void ClientManager::print_database(FILE * _PrintStream, size_t _From, size_t _To) const {
-	if (_To == 0)
-		_To = stream_header.next_id;
-
-	struct Client client_buffer;
-	fseek(stream, sizeof(stream_header), SEEK_SET);
-	size_t iterator = _From;
-	while (read_item(iterator ++, &client_buffer))
-	{
-		fprintf(_PrintStream, "[%03llu] ", iterator - 1);
-		fprintf(_PrintStream, "[%06llu:%02d]: ",
-			client_buffer.id.person_id, client_buffer.id.vehicle_id);
-
-		fprint_date(_PrintStream, client_buffer.registry_date);
-		fprintf(_PrintStream, " <%s> com <%s:%s>\n",
-			client_buffer.name,
-			client_buffer.vehicle.type,
-			client_buffer.vehicle.model
-		);
-	}
 }
 
 /*	Returns the index of first occurrence of the person's id on the database, from a given
@@ -135,7 +168,7 @@ int64_t ClientManager::fetch_person_id(id_t person_id, size_t _From) {
 	size_t iterator = _From;
 	while (iterator < stream_header.item_qtt)
 	{
-		if (! read_item(iterator, &client_buffer))
+		if (! read_element(iterator, &client_buffer))
 			return -2;
 
 		if (client_buffer.id.person_id == person_id)
@@ -208,20 +241,53 @@ bool ClientManager::register_client(const char name[NAME_SIZE], const struct Veh
 
 	/*	Sequentiating the actions of writing and increment the 
 	data stream properties. */
-	return write_item(stream_header.item_qtt, &client) && 
+	return write_element(stream_header.item_qtt, &client) && 
 		(++ stream_header.item_qtt) && 
 		((stream_header.next_id == person_id) && (++ stream_header.next_id));
 }
 
 
-/*	Service Orders
-	============== */
+/*	Service Orders Database
+	======================= */
 
-SO_Manager::SO_Manager(void) : Database(SO_FILENAME), client_manager() {
+
+inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder * _SO)
+{
+	// SO "header"
+	// fprintf(_OutputStream, "[%03llu]: ", _SO->id);
+
+	fprintf(_OutputStream, ": ");
+	switch (_SO->stage)
+	{
+	case SO_OPEN:			fprintf(_OutputStream, "%-7s", "OPEN"); break;
+	case SO_CLOSED:			fprintf(_OutputStream, "%-7s", "CLOSED"); break;
+	case SO_BUDGET:			fprintf(_OutputStream, "%-7s", "BUDGET"); break;
+	case SO_MAINTENANCE:	fprintf(_OutputStream, "%-7s", "MNTNC"); break;
+	default:				fprintf(_OutputStream, "%-7s", "UNKOWN"); break;
+	}
+	
+	// Date
+	fprintf(_OutputStream, " +", _SO->id);
+	fprint_date(_OutputStream, _SO->creation_date);
+	fprintf(_OutputStream, ", *");
+	fprint_date(_OutputStream, _SO->update_date);
+	fprintf(_OutputStream, "\t| ");
+
+	fprintf(_OutputStream, "client=[%06llu:%02d], ",
+		_SO->client_id.person_id, _SO->client_id.vehicle_id);
+
+	fprintf(_OutputStream, "hardware=R$%05.2lf, labor=R$%05.2lf",
+		((double) _SO->hardware_price) / 100.0L, ((double) _SO->labor_price) / 100.0L);
 }
 
-SO_Manager::~SO_Manager(void)
-{
+SO_Manager::SO_Manager(void) : Database(SO_FILENAME), client_manager() {
+	std::cout << "Initial SO-DB state:" << std::endl;
+	print_database();
+}
+
+SO_Manager::~SO_Manager(void) {
+	std::cout << "Final SO-DB state:" << std::endl;
+	print_database();
 }
 
 
@@ -252,17 +318,7 @@ bool SO_Manager::get_new_order(struct ServiceOrder * return_so)
 		.creation_date = date_of_now,
 		.update_date = date_of_now,
 	};
-
-	/*
-	if (! write_item(stream_header.last_id, &so)) {
-		fprintf(stderr, "[%s] <- (false): Couldn't write SO.\n", __func__);
-
-		// stream_header.last_id --;
-		return false;
-	}
-	*/
-
-
+	
 	* return_so = so;
 	return true;
 }
@@ -326,7 +382,7 @@ bool SO_Manager::set_new_order(const struct ServiceOrder * so)
 	struct ServiceOrder updated_so = * so;
 	updated_so.update_date = date_of_now;
 	
-	if (! write_item(updated_so.id, &updated_so))
+	if (! write_element(updated_so.id, &updated_so))
 	{
 		fprintf(stderr, "[%s] (false): IO...", __func__);
 		return false;

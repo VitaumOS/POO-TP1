@@ -25,7 +25,7 @@ int main(void) {
     login_screen.capture_password();
 #   endif // LOGIN_SCREEN_TEST
 	
-#	define CLIENT_GENERATION_TEST	true
+#	define CLIENT_GENERATION_TEST	false
 #	if CLIENT_GENERATION_TEST
 
 	ClientManager client_manager;
@@ -34,7 +34,7 @@ int main(void) {
 
 #	endif // CLIENT_GENERATION_TEST
 
-#	define SO_GENERATION_TEST		false
+#	define SO_GENERATION_TEST		true
 #	if SO_GENERATION_TEST
     SO_Manager so_manager;
 
@@ -42,7 +42,8 @@ int main(void) {
 	so_manager.get_new_order(&SO);
 	strcpy(SO.issue_description, "quebrou ne fi");
 
-	SO.client_id = { 0, 0 };
+	SO.client_id = { 0 };
+	SO.client_id.person_id = 2;
 	SO.hardware_price = 10000;
 	SO.labor_price = 10000;
 	so_manager.set_new_order(&SO);

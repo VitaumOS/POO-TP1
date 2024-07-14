@@ -1,3 +1,12 @@
+/*  <src/headers/databases.h>
+    
+    Defines the databases for the main application. */
+
+/*  Assignment part for @HexagonalUniverse.
+    
+    Last update: 14/07/2024. */
+
+
 #ifndef _DATABASES_HEADER_
 #define _DATABASES_HEADER_
 
@@ -7,14 +16,14 @@
 #include <stdio.h.> // FILE
 
 
-/*  Database
-    ======== */
+/*  Database Template
+    ================= */
 
-/*  A class representing a homogeneous database manager. 
-    The homogeneous data are its "itens", and they're specified by their index. 
+/*  A template class representing a homogeneous database manager. 
+    The homogeneous data are its elements, and they're specified by their index. 
     
     The database is associated with a headed file-stream tracking the indexes. */
-class Database {
+template <typename ElementType> class Database {
 private:
     bool init_succeeded;    // Tracks if the database's initialization was successful.
     bool init_stream(void); // Initializes (from empty) the file-stream - overwriting its occurrence.
@@ -32,28 +41,39 @@ protected:
         id_t item_qtt;  // How many items does is the database holding.
     } stream_header;
 
-    /*  Reads a single item in the homogeneous database data-space.
-        The item is specified by its index; the item is written by reference.
+    /*  Reads a single element in the homogeneous database data-space.
+        The element is specified by its index; the element is written by reference.
         Returns success; fails in case of IO sequencing. In case of fail, the stream
         pointer state is undeterminated. */
-    template <typename ITEM_T> inline bool 
-    read_item(id_t index, ITEM_T * _DstItem) const {
-        return (fseek(stream, sizeof(stream_header) + index * sizeof(ITEM_T), SEEK_SET) == 0) && 
-            (fread(_DstItem, sizeof(ITEM_T), 1, stream) > 0);
+    inline bool read_element(id_t index, ElementType * _DstItem) const {
+        return (fseek(stream, sizeof(stream_header) + index * sizeof(ElementType), SEEK_SET) == 0) && 
+            (fread(_DstItem, sizeof(ElementType), 1, stream) > 0);
     }
 
-    /*  Writes a single item in the homogeneous database data-space.
-        The item is specified by its index; the item is written by reference.
+    /*  Writes a single element in the homogeneous database data-space.
+        The element is specified by its index; the element is written by reference.
         Returns success; fails in case of IO sequencing. In case of fail, the stream
         pointer state is undeterminated. */
-    template <typename ITEM_T> inline bool
-    write_item(id_t index, const ITEM_T * _SrcItem) const {
-        return (fseek(stream, sizeof(stream_header) + index * sizeof(ITEM_T), SEEK_SET) == 0) &&
-            (fwrite(_SrcItem, sizeof(ITEM_T), 1, stream) > 0);
+    inline bool write_element(id_t index, const ElementType * _SrcItem) const {
+        return (fseek(stream, sizeof(stream_header) + index * sizeof(ElementType), SEEK_SET) == 0) &&
+            (fwrite(_SrcItem, sizeof(ElementType), 1, stream) > 0);
     }
 
     bool read_stream_header(void);          // Reads the internal stream-header structure.
     bool write_stream_header(void) const;   // Writes the internal stream-header structure.
+
+    /*  Database Representation
+        ----------------------- */
+    
+    virtual inline void fprint_element(FILE * _OutputStream, const ElementType * _Element) { 
+        fprintf(_OutputStream, "NONE%p", _Element); 
+    };
+
+    /*  Represents the database onto an output stream, sectioned inclusively, from a start to an end
+        - (_From) and (_To) respectively.
+        Case for what (_To = 0) actually will means that the entire database is target of printing.
+        Prints it on its entirety, and on stdout, by default. */
+    bool print_database(FILE * _OutputStream = stdout, size_t _From = 0, size_t _To = 0);
 
 public:
     Database(const char * filename);
@@ -65,8 +85,9 @@ public:
 };
 
 
-/*  Client
-    ====== */
+
+/*  Clients Database
+    ================ */
 
 constexpr const char * CLIENTDB_FILENAME = "data/clients.bin";
 
@@ -108,13 +129,14 @@ struct Client {
 
 
 /*  A homogeneous database for the clients. */
-class ClientManager : Database {
+class ClientManager : Database <struct Client> {
     /*  stream_header.next_id from <Database> will hold in this context
         the last person's id. */
 
 private:
     friend class SO_Manager;
-   
+    inline void fprint_element(FILE * _OutputStream, const struct Client *);
+
 public:
     ClientManager(void);
     ~ClientManager(void);
@@ -122,23 +144,19 @@ public:
     // Returns what should be the next person's id on the client's database sequence.
     inline uint64_t get_next_person_id(void) const { return stream_header.next_id; };
 
-    /*  Represents the database onto an output stream, sectioned, from a start to an end
-    - (_From) and (_To) respectively. 
-        Prints it on its entirety, and on stdout, by default. */
-    void print_database(FILE * _PrintStream = stdout, size_t _From = 0, size_t _To = 0) const;
-
     /*	Returns the index of first occurrence of the person's id on the database, from a given
     starting index (_From).
         The return is (-1) in case of not founding; and (-2) in case of IO errors. */
     int64_t fetch_person_id(id_t person_id, size_t _From = 0);
 
-
     bool register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, id_t person_id = ((id_t) - 1));
 };
 
 
-/*  Service Orders
-    ============== */
+
+/*  Service Orders Database
+    ======================= */
+
 typedef id_t so_id_t;
 
 /*  The stream over which the service-orders will be located at. */
@@ -180,10 +198,11 @@ struct ServiceOrder {
     Date update_date;   // The date at which the SO was last updated.
 };
 
-
-class SO_Manager : Database {
+class SO_Manager : Database <ServiceOrder> {
 private:
     /*  File stream */
+
+    inline void fprint_element(FILE * _OutputStream, const struct ServiceOrder * _SO);
 
     ClientManager client_manager;
 
@@ -198,12 +217,12 @@ private:
         return S >> 2;
     }
 
-    inline bool read_item(id_t index, struct ServiceOrder * return_so) const {
+    inline bool read_element(id_t index, struct ServiceOrder * return_so) const {
         fseek(stream, sizeof(stream_header) + index * sizeof(struct ServiceOrder), SEEK_SET);
         return fread(return_so, sizeof(struct ServiceOrder), 1, stream) > 0;
     }
 
-    inline bool write_item(id_t index, const struct ServiceOrder * so) {
+    inline bool write_element(id_t index, const struct ServiceOrder * so) {
         fseek(stream, sizeof(stream_header) + index * sizeof(struct ServiceOrder), SEEK_SET);
         return fwrite(so, sizeof(struct ServiceOrder), 1, stream) > 0;
     }
