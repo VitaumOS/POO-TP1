@@ -162,7 +162,7 @@ ClientManager::~ClientManager(void) {
 /*	Returns the index of first occurrence of the person's id on the database, from a given
 	starting index.
 	The return is (-1) in case of not founding; and (-2) in case of IO errors. */
-int64_t ClientManager::fetch_person_id(id_t person_id, size_t _From) {
+int64_t ClientManager::fetch_person_id(id_t person_id, size_t _From) const {
 	struct Client client_buffer;
 
 	size_t iterator = _From;
@@ -178,11 +178,29 @@ int64_t ClientManager::fetch_person_id(id_t person_id, size_t _From) {
 	}
 	return -1;
 }
-//
+
+int64_t ClientManager::fetch_client_id(const client_id_t & ID, size_t _From) const {
+	printf("fetch client id: [%llu]\n", ID.id);
+
+	struct Client client_buffer;
+
+	size_t iterator = _From;
+	while (iterator < stream_header.item_qtt)
+	{
+		if (! read_element(iterator, &client_buffer))
+			return -2;
+
+		if (client_buffer.id.id == ID.id)
+			return (int64_t) iterator;
+
+		iterator ++;
+	}
+	return -1;
+}
 
 /*	Register a new client - with a person registered or yet not - on the database.
 	Returns success; in case of fail, the state of the database won't change. */
-bool ClientManager::register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, id_t person_id) {
+bool ClientManager::register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, struct Client * return_client, id_t person_id) {
 	if (person_id == ((id_t) -1))
 		person_id = stream_header.next_id;
 	
@@ -200,7 +218,7 @@ bool ClientManager::register_client(const char name[NAME_SIZE], const struct Veh
 
 	// the client (person) does not exists yet on the database;
 	else if ((index == -1) && (vehicle_index == 0)) {
-		printf("Person [%llu] doesn't exists\n", person_id);
+		fprintf(stderr, "Person [%llu] doesn't exists\n", person_id);
 
 		// Beyond not existing, the person's ID is not even the next on the sequence.
 		if (person_id != stream_header.next_id)
@@ -212,7 +230,7 @@ bool ClientManager::register_client(const char name[NAME_SIZE], const struct Veh
 
 	// exceeded the allowed number of vehicles for the person.
 	else if (vehicle_index >= (1 << VEHICLE_ID_BITS)) {
-		printf("MUITA COISA\n");
+		fprintf(stderr, "MUITA COISA\n");
 		return false;
 	}
 
@@ -239,6 +257,9 @@ bool ClientManager::register_client(const char name[NAME_SIZE], const struct Veh
 	printf("client id: %d (%llu:%llu)\n", (int) client.id.id,
 		client.id.person_id, (unsigned long long) client.id.vehicle_id);
 
+	// TODO: MOVE IT TO AFTER WRITE VERIFICATION.
+	* return_client = client;
+
 	/*	Sequentiating the actions of writing and increment the 
 	data stream properties. */
 	return write_element(stream_header.item_qtt, &client) && 
@@ -250,7 +271,6 @@ bool ClientManager::register_client(const char name[NAME_SIZE], const struct Veh
 /*	Service Orders Database
 	======================= */
 
-
 inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder * _SO)
 {
 	// SO "header"
@@ -259,11 +279,13 @@ inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder 
 	fprintf(_OutputStream, ": ");
 	switch (_SO->stage)
 	{
-	case SO_OPEN:			fprintf(_OutputStream, "%-7s", "OPEN"); break;
-	case SO_CLOSED:			fprintf(_OutputStream, "%-7s", "CLOSED"); break;
-	case SO_BUDGET:			fprintf(_OutputStream, "%-7s", "BUDGET"); break;
-	case SO_MAINTENANCE:	fprintf(_OutputStream, "%-7s", "MNTNC"); break;
-	default:				fprintf(_OutputStream, "%-7s", "UNKOWN"); break;
+	case SO_OPEN:			fprintf(_OutputStream, "%-4s", "OPEN"); break;
+	case SO_BUDGET:			fprintf(_OutputStream, "%-4s", "BDGT"); break;
+	case SO_MAINTENANCE:	fprintf(_OutputStream, "%-4s", "MNTC"); break;
+	case SO_CLOSED:			fprintf(_OutputStream, "%-4s", "CLOS"); break;
+	case SO_CANCELED:		fprintf(_OutputStream, "%-4s", "CANC"); break;
+	case SO_CLOSED_BUDGET:	fprintf(_OutputStream, "%-4s", "CBUD"); break;
+	default:				fprintf(_OutputStream, "%-4s", "UNKW"); break;
 	}
 	
 	// Date
@@ -271,13 +293,15 @@ inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder 
 	fprint_date(_OutputStream, _SO->creation_date);
 	fprintf(_OutputStream, ", *");
 	fprint_date(_OutputStream, _SO->update_date);
-	fprintf(_OutputStream, "\t| ");
+	fprintf(_OutputStream, " | ");
 
-	fprintf(_OutputStream, "client=[%06llu:%02d], ",
+	fprintf(_OutputStream, "[%06llu:%02d], ",
 		_SO->client_id.person_id, _SO->client_id.vehicle_id);
 
 	fprintf(_OutputStream, "hardware=R$%05.2lf, labor=R$%05.2lf",
 		((double) _SO->hardware_price) / ((double) 100.0), ((double) _SO->labor_price) / ((double) 100.0));
+
+	fprintf(_OutputStream, " [%-16s]", _SO->issue_description);
 }
 
 SO_Manager::SO_Manager(void) : Database(SO_FILENAME), client_manager() {
@@ -290,23 +314,46 @@ SO_Manager::~SO_Manager(void) {
 	print_database();
 }
 
+/*  Attempts creating a new service-order into the database.
 
-/*	Gets a new order on the database. 
-	In that sense, the passed SO is pre-loaded with the new order template, to be
-	filled elsewhere.
+	\param issue:       The SO description text.
+	\param client_id:   The id of the client the order will be associated with.
+	\param return_so:   (Return) In case of success, it will match the new SO.
 
-	Once filled, it will be followed by <create_new_order> so it can correctly go to the
-	database. */
-bool SO_Manager::get_new_order(struct ServiceOrder * return_so)
+	\return The function's return is the success in creating the SO. Fails in case of data inconsistency
+	or IO problems. In case of success, <return_so> will be returned matching the new created SO.
+	Its state is unchanged from input in case of failure. */
+bool SO_Manager::new_order(const char issue[SO_DESCRIPTION_SIZE], const client_id_t & client_id, struct ServiceOrder * return_so)
 {
-	Date date_of_now;
-	if (! get_date(date_of_now))
+	// Validating the issue-description:
+	// The description has to be bigger enough.
+	int i = 0;
+	while (issue[i ++] && (i <= 4));
+	if (i < 4)
+	{
+		fprintf(stderr, "[%s] (false): Issue description doesn't have even 4 valid characters (%d)...\n",
+			__func__, i);
 		return false;
+	}
+
+	// Validating the SO's client's ID.
+	int64_t client_pos;
+	if ((client_pos = client_manager.fetch_client_id(client_id)) < 0)
+	{
+		fprintf(stderr, "[%s] (false): Client's ID (%llu) is inexistent.\n", __func__, client_id.id);
+		return false;
+	}
+
+	Date date_of_now;
+	if (! get_date(date_of_now)) {
+		fprintf(stderr, "[%s] (false): Couldn't get date.\n", __func__);
+		return false;
+	}
 
 	struct ServiceOrder so = {
 		.id = stream_header.next_id,
 		.stage = SO_OPEN,
-		.client_id = { 0 },
+		.client_id = client_id,
 		.issue_description = "undef",
 		.budget = {
 			.n_pieces = 0,  .pieces = { (PIECE_ID) 0 }
@@ -318,81 +365,82 @@ bool SO_Manager::get_new_order(struct ServiceOrder * return_so)
 		.creation_date = date_of_now,
 		.update_date = date_of_now,
 	};
-	
-	* return_so = so;
-	return true;
+	strcpy(so.issue_description, issue);
+
+	if (write_element(stream_header.item_qtt, &so))
+	{
+		fprintf(stderr, "[%s] Apparently could write element #%llu\n",__func__, stream_header.item_qtt);
+		++ stream_header.item_qtt;
+		++ stream_header.next_id;
+		* return_so = so;
+		return true;
+	}
+
+	fprintf(stderr, "[%s] (false): Couldn't write new-order.\n", __func__);
+	return false;
 }
 
+/*  Attempts budgeting an open service-order in the database.
 
+	\param id:              The SO's id.
+	\param parts_budget:    The budget of the vehicle's parts information to be added.
 
-/*	Sets / writes a new order on the database. 
-	For that, first it is analysed to check if it can properly be set as a 
-	new SO. And that involves:
-		. SO's ID being the next in the database sequence;
-		. SO's stage to be on open;
-		. SO's client's ID to be valid;
-		. SO's issue-description to be large enough (>4).
-		
-	Returns success; fails in case of the SO validity and IO operations. */
-bool SO_Manager::create_new_order(const struct ServiceOrder * so)
+	\return The function's return is the success of updating the SO. Fails in case of data inconsistency
+	or IO problems. In case of success, <return_so> will be returned matching the newly updated SO.
+	Its state is unchanced from input in case of failure. */
+bool SO_Manager::budget_order(const so_id_t id, const struct PartsBudget & parts_budget, struct ServiceOrder * return_so)
 {
-	// Validating the SO's id:
-	// It has to have the next id in the database.
-	if (so->id != stream_header.next_id)
-	{
-		fprintf(stderr, "[%s] (false): ID is not the next.\n", __func__);
+	// Validating the SO ID.
+	if (id >= stream_header.next_id)
 		return false;
+
+	// Validating the parts-budget structure.
+	if (parts_budget.n_pieces > MAX_PIECES)
+		return false;
+	for (uint8_t i = 0; i < parts_budget.n_pieces; ++i)
+	{
+		if (parts_budget.pieces[i] > LAST_PIECE_ID)
+			return false;
 	}
 
-	// Validating the SO stage:
-	// It has to be on OPEN stage.
-	if (so->stage != SO_OPEN)
-	{
-		fprintf(stderr, "[%s] (false): Can only set new orders as OPEN.\n", __func__);
+	// Retrieving the SO.
+	ServiceOrder target_so;
+	if (! read_element(id, &target_so))
 		return false;
-	}
 
-	// Validating the issue-description:
-	// The description has to be bigger enough.
-	int i = 0;
-	while (so->issue_description[i ++] && (i <= 4));
-	if (i < 4)
-	{
-		fprintf(stderr, "[%s] (false): Issue description doesn't have even 4 valid characters (%d)...\n", 
-			__func__, i);
+	// Validating tis currente stage.
+	if (target_so.stage != SO_OPEN)
 		return false;
-	}
-
-	// Validating the SO's client's ID
-	if (client_manager.fetch_person_id(so->client_id.person_id) < 0)
-	{
-		fprintf(stderr, "[%s] (false): Client's ID is inexistent.\n", __func__);
-		return false;
-	}
-
-	// Updating the date.
 
 	Date date_of_now;
 	if (! get_date(date_of_now))
-	{
-		fprintf(stderr, "[%s] (false): Couldn't get the date...\n", __func__);
 		return false;
-	}
-	
-	struct ServiceOrder updated_so = * so;
-	updated_so.update_date = date_of_now;
-	
-	if (! write_element(updated_so.id, &updated_so))
+
+	target_so.update_date = date_of_now;
+	target_so.stage = SO_BUDGET;
+	target_so.budget = parts_budget;
+	target_so.hardware_price = sum_hardware_budget(parts_budget);
+	target_so.labor_price = calculate_labor_price(target_so);
+
+	if (write_element(id, &target_so))
 	{
-		fprintf(stderr, "[%s] (false): IO...", __func__);
-		return false;
+		* return_so = target_so;
+		return true;
 	}
 
-	stream_header.next_id ++;
-	return true;
+	fprintf(stderr, "[%s] Couldn't update SO.\n", __func__);
+	return false;
 }
 
+bool SO_Manager::operate_order(void)
+{
 
+}
+
+bool SO_Manager::close_order(void)
+{
+
+}
 
 /*	Advances a SO to its next stage. 
 
@@ -415,7 +463,8 @@ bool SO_Manager::advance_order(id_t id, const struct ServiceOrder * src_so)
 	if (! read_element(id, &old_so)) 
 		return false;
 
-	if (src_so->creation_date != old_so.creation_date)
+	Date src_so_creation_date = src_so->creation_date;
+	if (src_so_creation_date != old_so.creation_date)
 		return false;
 
 	else if (src_so->client_id.id != old_so.client_id.id)
@@ -432,8 +481,9 @@ bool SO_Manager::advance_order(id_t id, const struct ServiceOrder * src_so)
 	return false;
 }
 
-bool SO_Manager::close_order(id_t id)
+
+bool SO_Manager::get_order(id_t id, struct ServiceOrder * return_so) const
 {
-	printf("[%s] id=%llu, so=%p\n", __func__, id, (void*)NULL);
-	return false;
+
 }
+

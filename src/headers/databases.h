@@ -39,6 +39,7 @@ protected:
     struct {    // Keeps overall information of the stream.
         id_t next_id;   // The next sequential ID to be filled on the database.
         id_t item_qtt;  // How many items does is the database holding.
+        // id_t first_active; // The oldest active element in the database.
     } stream_header;
 
     /*  Reads a single element in the homogeneous database data-space.
@@ -129,7 +130,6 @@ struct Client {
     Date registry_date;
 };
 
-
 /*  A homogeneous database for the clients. */
 class ClientManager : Database <struct Client> {
     /*  stream_header.next_id from <Database> will hold in this context
@@ -149,9 +149,10 @@ public:
     /*	Returns the index of first occurrence of the person's id on the database, from a given
     starting index (_From).
         The return is (-1) in case of not founding; and (-2) in case of IO errors. */
-    int64_t fetch_person_id(id_t person_id, size_t _From = 0);
+    int64_t fetch_person_id(id_t person_id, size_t _From = 0) const;
+    int64_t fetch_client_id(const client_id_t & client_id_t, size_t _From = 0) const;
 
-    bool register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, id_t person_id = ((id_t) - 1));
+    bool register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, struct Client * return_client, id_t person_id = ((id_t) - 1));
 };
 
 
@@ -186,7 +187,6 @@ typedef enum _SOS {
     SO_CLOSED_BUDGET,   // Closed SO. SO closed from "budget" state.
 } SERVICE_ORDER_STAGE;
 
-
 typedef id_t so_id_t;
 
 /*  Represents a service-order item. */
@@ -208,34 +208,52 @@ struct ServiceOrder {
     Date update_date;   // The date at which the SO was last updated.
 };
 
+typedef enum _SOH {
+    SOH_SUCCESS
+} SO_HANDLING;
+
+
 class SO_Manager : Database <struct ServiceOrder> {
 private:
-    /*  File stream */
-
     inline void fprint_element(FILE * _OutputStream, const struct ServiceOrder * _SO);
 
     ClientManager client_manager;
 
-    currency_t calculate_labor_price(const struct PartsBudget & budget) const {
-        currency_t S = 0;
+    currency_t sum_hardware_budget(const struct PartsBudget & budget) const {
+        currency_t sum = 0;
+        for (uint8_t i = 0; i < budget.n_pieces; ++ i)
+            sum += hash_piece_price(budget.pieces[i]);
+        return sum;
+    }
 
-        for (uint8_t i = 0; i < budget.n_pieces; i ++)
-        {
-            S += hash_piece_price(budget.pieces[i]);
-        }
-
-        return S >> 2;
+    currency_t calculate_labor_price(const struct ServiceOrder & SO) const {
+        return 0;
     }
     
 public:
     SO_Manager(void);
     ~SO_Manager(void);
 
-    bool get_new_order(struct ServiceOrder * return_so);
-    bool create_new_order(const struct ServiceOrder * so);
+    /*  Attempts creating a new service-order into the database. */
+    bool new_order(const char issue[SO_DESCRIPTION_SIZE], const client_id_t & client_id,
+        struct ServiceOrder * return_so);
 
+    /*  Attempts budgeting an open service-order in the database. */
+    bool budget_order(const so_id_t id, const struct PartsBudget & parts_budget, struct ServiceOrder * return_so);
+    
+    /*  Attempts opening a service-order in the database to maintenance. */
+    bool operate_order(void);
+
+    /*  Attempts closing a service-oder in the database. */
+    bool close_order(void);
+
+    /*  Attempts advancing a service-oder to its next (natural) stage, in the database. 
+        It bases upon the the source SO to the updating. */
     bool advance_order(id_t id, const struct ServiceOrder * src_so);
-    bool close_order(id_t id);
+
+    /*  Attempts getting an existing service-order on the database.
+        Returns success, failing in case of an invalid ID or, generally, IO issues. */
+    bool get_order(id_t id, struct ServiceOrder * return_so) const;
 };
 
-#endif
+#endif  
