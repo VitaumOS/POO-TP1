@@ -38,16 +38,9 @@ int main(void) {
 #	if SO_GENERATION_TEST
     SO_Manager so_manager;
 
-	ServiceOrder SO;
-	so_manager.get_new_order(&SO);
-	strcpy(SO.issue_description, "quebrou ne fi");
-
-	SO.client_id = { 0 };
-	SO.client_id.person_id = 2;
-	SO.hardware_price = 10000;
-	SO.labor_price = 10000;
-	so_manager.create_new_order(&SO);
-
+	struct ServiceOrder SO;
+    if (! so_manager.new_order("quebrou ne fi", { (2 << VEHICLE_ID_BITS) + 0 }, & SO))
+        fprintf(stderr, "FALHOU TUDO\n");
 
 #	endif // SO_GENERATION_TEST
 

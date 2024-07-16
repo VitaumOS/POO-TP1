@@ -1,7 +1,8 @@
 /*  <src/header/seller.h>
 
 */
-
+#define ACTIVE_SELLER   false
+#if ACTIVE_SELLER
 
 #ifndef _SELLER_HEADER_
 #define _SELLER_HEADER_
@@ -11,19 +12,25 @@
 #include "databases.h"
 
 
-class Seller: public Worker {
+class Seller: public User {
 private:
-    
-    
+    SO_Manager * so_manager;
+    struct Client client_buffer;
+    struct ServiceOrder so_buffer;
+
 public:
-    Seller(SO_Manager * so);
+    Seller(SO_Manager * so_manager) : so_manager(so_manager) { };
     ~Seller(void);
 
-    bool RegisterClient(Client client);
+    bool RegisterClient();
+    bool GenerateSO();
+    bool ApproveOrders();
+    bool CloseOrders();
 
-    bool ServiceOrder_Approve(id_t &so_id);
-    bool ServiceOrder_Close(id_t &so_id);
+    void Interface();
 };
 
 
 #endif // _SELLER_HEADER_
+
+#endif

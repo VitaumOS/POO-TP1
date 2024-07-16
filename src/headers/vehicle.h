@@ -18,6 +18,8 @@ typedef enum {
     CAR_HEADLIGHT,
 } PIECE_ID;
 
+#define LAST_PIECE_ID   CAR_HEADLIGHT
+
 
 __attribute__((always_inline)) inline currency_t hash_piece_price(const PIECE_ID piece_id) {
     switch (piece_id) {
