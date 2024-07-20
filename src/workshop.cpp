@@ -5,9 +5,46 @@
 
 #include <workshop.h>
 
+/*
+class SellerInterface : virtual public Screen {
+    Seller viado;
+}
+*/
 
 /*  (Program specs.) */
 int main(void) {
+
+#   define SELLER_TEST                 true
+#   if SELLER_TEST
+
+    SO_Manager patrao;
+    
+    while (true)
+    {
+        // tela de login inicial // Verifica se conseguiu logar
+        while (true) {
+            
+            std::cout << "Logou" << std::endl;
+            break;
+        }
+
+        // * já logou com o vendedor
+        if (true) {
+            std::wcout << L"Já logou com o vendedor" << std::endl;
+            
+            Seller viado(&patrao);
+            viado.Interface();
+            
+        } else if (false){
+            
+        }
+
+        break;
+    }
+    
+    
+
+#   endif // SELLER_TEST
 
 #   define LOGIN_SCREEN_TEST		false
 #   if LOGIN_SCREEN_TEST
@@ -19,7 +56,7 @@ int main(void) {
     login_screen.capture_password();
 #   endif // LOGIN_SCREEN_TEST
 	
-#	define CLIENT_GENERATION_TEST	true
+#	define CLIENT_GENERATION_TEST	false
 #	if CLIENT_GENERATION_TEST
 
 	ClientsManager client_manager;

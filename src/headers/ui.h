@@ -63,15 +63,6 @@ protected:
 	int width, height;
 	rgb bg, fg;
 
-public:
-	Screen(void);
-	Screen(int width, int height, rgb bg, rgb fg);
-	virtual void render()
-	{
-		aec_clean();
-		printf("\n\t\tBLANK SCREEN\n\n\n");
-	};
-
 	void set_bg(void)	const	{ aec_bg_rgb(bg.r, bg.g, bg.b); }
 	void set_fg(void)	const	{ aec_fg_rgb(fg.r, fg.g, fg.b); }
 
@@ -86,6 +77,7 @@ public:
 		aec_crs_down(height); 
 	}
 
+public:
 	// Moves the cursor to the absolute position (x, y) on the screen.
 	bool go_to_abs(int x, int y) const {
 		if ((x < 0) || (y < 0) || (x > width) || (y > height))
@@ -154,6 +146,19 @@ public:
 		return go_to_abs(x - (string_length >> 1), y)
 			&& print_c_string(_String);
 	}
+
+	public:
+	Screen(void);
+	Screen(int width, int height, rgb bg, rgb fg);
+	virtual void render() {
+		aec_clean();
+		printf("\n\t\tBLANK SCREEN\n\n\n");
+	};
+	
+	virtual int interact(void) {
+		printf("vtmnc VS\n");
+		return -1;
+	};
 };
 
 class Label {
@@ -162,7 +167,6 @@ private:
 public:
 	int x, y;
 	std::string label_str;
-
 
 	Label(void)
 	{
@@ -178,8 +182,8 @@ public:
 
 	bool render_at_screen(const Screen * _Screen)
 	{
-		return _Screen->go_to_abs(x, y)
-			&& print_c_string(label_str.c_str());
+		// return _Screen->go_to_abs(x, y) && print_c_string(label_str.c_str());
+		return false;
 	}
 };
 

@@ -6,6 +6,7 @@
 #include "headers/date.h"
 #include <iostream>
 #include <cstdlib>
+#include <time.h>
 
 
 bool get_date(Date & the_date) {
