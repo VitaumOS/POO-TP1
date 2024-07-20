@@ -58,9 +58,6 @@ typedef enum {
 
 
 
-
-
-
 class Screen {
 protected:
 	int width, height;

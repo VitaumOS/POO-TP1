@@ -1,6 +1,6 @@
 # Makefile at <POO-TP1/>
 # =======================
-# Last update: 14/07/2024.
+# Last update: 20/07/2024.
 .PHONY: build-and-run 
 .PHONY: build run
 .PHONY: clean full-clean erase-data 
@@ -10,8 +10,10 @@
 # -----------
 # * All relative to the working directory this file.
 
+# Sources
 dir_src				:= src/
 dir_hdr				:= src/headers/
+
 dir_bin				:= bin/
 dir_obj				:= $(dir_bin)obj/
 dir_dat				:= data/			
@@ -20,8 +22,8 @@ dir_tmp				:= $(dir_dat)cache/
 # Files
 # -----
 
-source_files		:= $(wildcard $(dir_src)*.cpp)
-header_files		:= $(wildcard $(dir_hdr)*.h)
+source_files		:= $(wildcard $(dir_src)*.cpp) $(wildcard $(dir_src)*/*.cpp)
+header_files		:= $(wildcard $(dir_hdr)*.h) $(wildcard $(dir_src)*/*.hpp)
 object_files		:= $(foreach object,$(subst .cpp,.o,$(subst $(dir_src),,$(source_files))),$(dir_obj)$(object))
 
 target_exe			:= $(dir_bin)workshop.exe
@@ -52,10 +54,12 @@ build-and-run: build run
 
 build: $(target_exe)
 	@echo System assembled.
+	@echo Source files: $(source_files).
+	@echo Header files: $(header_files).
 
 $(target_exe): $(object_files)
 	@$(MAKEDIR)	
-	@g++ $(COMPILE_DIRECTIVES) $^ -o $@
+	g++ $(EXE_COMPILE_DIRECTIVES) $^ -o $@
 
 $(dir_obj)%.o: $(dir_src)%.cpp $(header_files)
 	@$(MAKEDIR)

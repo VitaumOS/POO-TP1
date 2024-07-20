@@ -11,23 +11,23 @@
 
 
 typedef enum {
-    TIRE,
-    SEAT,
-    WHEEL,
-    STEERING_WHEEL,
-    CAR_HEADLIGHT,
+    PIECE_TIRE,
+    PIECE_SEAT,
+    PIECE_WHEEL,
+    PIECE_STEERING_WHEEL,
+    PIECE_CAR_HEADLIGHT,
 } PIECE_ID;
 
-#define LAST_PIECE_ID   CAR_HEADLIGHT
+#define LAST_PIECE_ID   PIECE_CAR_HEADLIGHT
 
 
 __attribute__((always_inline)) inline currency_t hash_piece_price(const PIECE_ID piece_id) {
     switch (piece_id) {
-    case TIRE:                  return 76;
-    case SEAT:                  return 10000;
-    case WHEEL:                 return 71999;
-    case STEERING_WHEEL:        return 21398;
-    case CAR_HEADLIGHT:         return 12130;
+    case PIECE_TIRE:                  return 76;
+    case PIECE_SEAT:                  return 10000;
+    case PIECE_WHEEL:                 return 71999;
+    case PIECE_STEERING_WHEEL:        return 21398;
+    case PIECE_CAR_HEADLIGHT:         return 12130;
     }
     return 0;
 }

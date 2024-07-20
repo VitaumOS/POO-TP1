@@ -8,6 +8,7 @@
 
 
 #include <inttypes.h>
+#include "date.h"
 
 
 /*  Defines the standard string size for names. */
@@ -18,52 +19,15 @@
 typedef uint64_t id_t;
 
 
-// Ref: https://www.ibm.com/docs/en/zos/3.1.0?topic=functions-timetime64-determine-current-utc-time
-
-typedef struct _Date { 
-	uint8_t day, month, year, hour, minutes, seconds; 
-
-
-	inline bool operator==(const struct _Date & y) {
-		return (year == y.year) && (month == y.month) && (day == y.day)
-			&& (hour == y.hour) && (minutes == y.minutes) && (seconds == y.seconds);
-	}
-
-	inline bool operator!=(const struct _Date & y) {
-		return (year != y.year) || (month != y.month) || (day != y.day)
-			|| (hour != y.hour) || (minutes != y.minutes) || (seconds != y.seconds);
-	}
-
-	inline bool operator>(const struct _Date & y) { 
-		return (year > y.year) && (month > y.month) && (day > y.day)
-			&& (hour > y.hour) && (minutes > y.minutes) && (seconds > y.seconds);
-	}
-
-	inline bool operator<(const struct _Date & y) {
-		return (year < y.year) && (month < y.month) && (day < y.day)
-			&& (hour < y.hour) && (minutes < y.minutes) && (seconds < y.seconds);
-	}
-
-	inline bool operator>=(const struct _Date & y) {
-		return (year >= y.year) && (month >= y.month) && (day >= y.day)
-			&& (hour >= y.hour) && (minutes >= y.minutes) && (seconds >= y.seconds);
-	}
-
-	inline bool operator<=(const struct _Date & y) {
-		return (year <= y.year) && (month <= y.month) && (day <= y.day)
-			&& (hour <= y.hour) && (minutes <= y.minutes) && (seconds <= y.seconds);
-	}
-
-} Date;
-
-
 /*	Currency
 	======== */
 
 // A type representing currency values - with two decimal places for cents.
 typedef uint64_t currency_t;
+#define CURRENCY_REPR_SIZE		"6"
 
-#define fprint_currency(_Stream, _CurrencyValue)	fprintf(_Stream, "%05.2lf", ((double) _CurrencyValue) / 100.0L)
+#define fprint_currency(_Stream, _CurrencyValue)	fprintf(_Stream, "%0" CURRENCY_REPR_SIZE ".2lf", ((double) _CurrencyValue) / ((double) 100.0))
+#define sprint_currency(_Buffer, _CurrencyValue)	sprintf(_Buffer, "%0" CURRENCY_REPR_SIZE ".2lf", ((double) _CurrencyValue) / ((double) 100.0))
 #define print_currency(_CurrencyValue)				fprint_currency(stdout, _CurrencyValue)
 
 

@@ -11,7 +11,7 @@
 
 
 # Binaries
-*.exe
+# *.exe
 *.lib
 *.o
 
