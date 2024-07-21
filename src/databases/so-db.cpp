@@ -2,13 +2,10 @@
 
 	Defines the service-orders (SOs) database. */
 
-/*  Assignment part for @HexagonalUniverse.
-
-	Last update: 20/07/2024. */
+/*	Last update: 20/07/2024. */
 
 
 #include "so-db.hpp"
-#include <iostream>	// cin & cout
 #include <string.h>	// for strcpy, strcmp
 #include <assert.h>
 
@@ -19,7 +16,7 @@ struct SOM_stream_header {
 };
 
 
-SO_Manager::SO_Manager(void) : Database(SO_FILENAME, sizeof(first_active) + sizeof(item_qtt)), client_manager() {
+SO_Manager::SO_Manager(void) : Database(SODB_filename, sizeof(first_active) + sizeof(item_qtt)), client_manager() {
 	// stream_header_size += sizeof(first_active);
 
 	if (! SO_Manager::retrieve_stream_header()) {

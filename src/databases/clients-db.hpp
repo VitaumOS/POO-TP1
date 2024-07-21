@@ -2,9 +2,7 @@
 
     Declares the client's database. */
 
-/*  Assignment part for @HexagonalUniverse.
-
-    Last update: 20/07/2024. */
+/*	Last update: 20/07/2024. */
 
 
 #ifndef _CLIENTS_DB_HPP_INCLUDED_
@@ -16,8 +14,8 @@
 #include "databases.hpp"
 
 
-constexpr const char * PERSONSDB_FILENAME = "data/persons.bin"; // TODO
-constexpr const char * CLIENTDB_FILENAME = "data/clients.bin";
+constexpr c_filepath people_DB_filename = "data/persons.bin"; // TODO
+constexpr c_filepath clients_DB_filename = "data/clients.bin";
 
 // In the address space of 64 bits:
 // "how many bits there are reserved for identifying the client's (vehicle) id?"

@@ -2,9 +2,7 @@
 
     Declares the service-orders (SOs) database. */
 
-/*  Assignment part for @HexagonalUniverse.
-
-    Last update: 20/07/2024. */
+/*	Last update: 20/07/2024. */
 
 
 #ifndef _SERVICEORDER_DB_HPP_INCLUDED_
@@ -20,7 +18,7 @@ typedef id_t so_id_t;
 constexpr uint64_t SO_DESCRIPTION_SIZE = 64ULL;
 
 /*  The stream over which the service-orders will be located at. */
-constexpr const char * SO_FILENAME = "data/service-orders.bin";
+constexpr c_filepath SODB_filename = "data/service-orders.bin";
 
 
 /*  The states a service-order can be at.
@@ -61,7 +59,6 @@ struct ServiceOrder {
     Date creation_date; // The date at which the SO was created.
     Date update_date;   // The date at which the SO was last updated.
 };
-
 
 typedef enum _SOH {
     SOH_SUCCESS

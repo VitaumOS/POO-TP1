@@ -182,8 +182,7 @@ public:
 
 	bool render_at_screen(const Screen * _Screen)
 	{
-		// return _Screen->go_to_abs(x, y) && print_c_string(label_str.c_str());
-		return false;
+		return _Screen->go_to_abs(x, y) && print_c_string(label_str.c_str());
 	}
 };
 

@@ -16,6 +16,7 @@
 // Database
 #if defined(__cplusplus)
 #	include "../databases/so-db.hpp"	// Includes "src/databases/clients-db.hpp" and "src/databases/databases.hpp" as a chain.
+#	include "../databases/users-db.hpp"
 #endif // defined(__cplusplus)
 
 

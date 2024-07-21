@@ -2,9 +2,7 @@
     
     Defines the homogenous database model used throughtout the program. */
 
-/*  Assignment part for @HexagonalUniverse.
-    
-    Last update: 20/07/2024. */
+/*	Last update: 20/07/2024. */
 
 
 #ifndef _DATABASES_HPP_INCLUDED_
@@ -52,8 +50,8 @@ private:
 	const size_t page_elements_qtt = database_paging_buffer_size / sizeof(ElementType);
 	// byte page_buffer[database_paging_buffer_size]; // NOT YET IMPLEMENTED.
 
-    const char * filename;          // The database's (main) stream filename.
-    bool init_succeeded;            // Tracks if the database's initialization was successful.
+    c_filepath filename;	// The database's (main) stream filename.
+    bool init_succeeded;	// Tracks if the database's initialization was successful.
     
     // Attempts initializing (from empty) the file-stream, overwriting it.
     bool overwrite_stream(void);    

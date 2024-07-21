@@ -50,6 +50,7 @@ bool Seller::RegisterClient(void) {
 
 bool Seller::LoadClient(void)
 {
+    /*
     id_t client_id;
 
     int64_t eder;
@@ -58,11 +59,10 @@ bool Seller::LoadClient(void)
         cout << "What is the cliend ID?" << endl;
         cin >> client_id;
         
-        if (eder = client_manager.fetch_id(pica) >= 0)
-        {
-            
-        }
+        // if (eder = client_manager.fetch_id(pica) >= 0 {      }
     }
+    */
+    return false;
 }
 
 bool Seller::GenerateSO() {

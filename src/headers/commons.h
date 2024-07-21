@@ -11,16 +11,25 @@
 #include "date.h"
 
 
+/*	Sizes *
+ *	===== */
+
 /*  Defines the standard string size for names. */
-#define NAME_SIZE    		64u
+constexpr size_t NAME_SIZE = 64ULL;
 
 
-// A type representing an ID.
+/*	Types *
+ * ====== */
+
+// Represents a constant filepath.
+typedef const char * c_filepath;
+
+// A type representing generically an ID.
 typedef uint64_t id_t;
 
 
-/*	Currency
-	======== */
+/*	The Currency *
+ *	============ */
 
 // A type representing currency values - with two decimal places for cents.
 typedef uint64_t currency_t;

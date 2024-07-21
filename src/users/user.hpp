@@ -12,6 +12,13 @@ typedef enum {
 } SYSTEM_LOGIN_CODE;
 
 
+constexpr size_t username_string_length = 64ULL;
+constexpr size_t password_string_length = 64ULL;
+
+typedef char user_username_t[username_string_length];
+typedef char user_password_t[password_string_length];
+
+
 class User {
 private:
     id_t id;    // Holds the ID for the user.

@@ -2,13 +2,10 @@
 
 	Defines the client's database.. */
 
-/*  Assignment part for @HexagonalUniverse.
-
-	Last update: 20/07/2024. */
+/*	Last update: 20/07/2024. */
 
 
 #include "clients-db.hpp"
-#include <iostream>	// cin & cout
 #include <string.h>	// for strcpy, strcmp
 #include <assert.h>
 
@@ -19,8 +16,12 @@ struct CM_stream_header {
 };
 
 
-ClientsManager::ClientsManager(void) : Database(CLIENTDB_FILENAME, sizeof(next_id) + sizeof(item_qtt)) {
+ClientsManager::ClientsManager(void) : Database(clients_DB_filename, sizeof(next_id) + sizeof(item_qtt)) {
 	// stream_header_size += sizeof(next_id);
+	if (! could_initialize()) {
+		std::cerr << "Couldn't initialize ClientsManager." << std::endl;
+		return;
+	}
 
 	if (! ClientsManager::retrieve_stream_header()) {
 
@@ -34,7 +35,7 @@ ClientsManager::ClientsManager(void) : Database(CLIENTDB_FILENAME, sizeof(next_i
 };
 
 ClientsManager::~ClientsManager(void) {
-	if (stream == nullptr)	return;
+	if (stream == nullptr)	return;	// the database is already closed.
 
 	std::cout << "Final client database state:" << std::endl;
 	print_database();

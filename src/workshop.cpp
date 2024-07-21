@@ -5,16 +5,24 @@
 
 #include <workshop.h>
 
-/*
-class SellerInterface : virtual public Screen {
-    Seller viado;
-}
-*/
 
 /*  (Program specs.) */
 int main(void) {
 
-#   define SELLER_TEST                 true
+#   define USERS_DB_TEST                true
+#   if USERS_DB_TEST
+    
+    Users_DB users_manager;
+    users_manager.register_user(USER_TYPE_ADM, "cmrd-admin", "123");
+    users_manager.register_user(USER_TYPE_SLR, "cmrd-seller", "123");
+    users_manager.register_user(USER_TYPE_MCH, "cmrd-mechanic", "123");
+    users_manager.login("cmrd-admin", "123");
+
+
+
+#   endif // USERS_DB_TEST
+
+#   define SELLER_TEST                  false
 #   if SELLER_TEST
 
     SO_Manager patrao;
@@ -42,8 +50,6 @@ int main(void) {
         break;
     }
     
-    
-
 #   endif // SELLER_TEST
 
 #   define LOGIN_SCREEN_TEST		false
