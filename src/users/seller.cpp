@@ -3,133 +3,238 @@
 */
 
 #include "seller.hpp"
+#include "../headers/ui.hpp"
 
 #define ACTIVE_SELLER true
 #if ACTIVE_SELLER
 
+
 #include <iostream>
 #include <string>
 #include <string.h>
+
+
 using namespace std;
 
 
 
-bool Seller::RegisterClient(void) {
+Seller::Seller(id_t id, SO_Manager * so_manager) : User(id, so_manager)
+{
+    client_is_loaded = false;
+    so_is_loaded = 0;
 
-    cout << "Qual e seu nome?" << endl;
+    client_buffer = { 0 };
+    so_buffer = { 0 };
+}
+
+Seller::~Seller(void)
+{
+
+}
+
+enum REGISTERCLIENT Seller::register_client_menu(void) {
+
+    cout << "Digite o nome do cliente:\t\t\t\t";
+    
     cin >> string_buffer;
     string_buffer.resize(NAME_SIZE);
     strcpy(client_buffer.name, string_buffer.c_str());
 
-    cout << "Qual e o seu veiculo (Ex: carro, moto, etc...)?" << endl;
-    cin >> string_buffer;
-    string_buffer.resize(NAME_SIZE);
-    strcpy(client_buffer.vehicle.type, string_buffer.c_str());
+    //if (so_manager->fetch_person_name(client_buffer.name) >= 0) 
+    //        return REGISTERCLIENT_ALREADY_EXIST;
 
-    cout << "Qual e o modelo do seu veiculo?" << endl;
+    cout << "Qual é o tipo do veículo (Ex: carro, moto, etc...)?\t";
+    
+    cin >> string_buffer;
+    strcpy(client_buffer.vehicle.type, string_buffer.c_str());
+    string_buffer.resize(NAME_SIZE);
+
+    cout << "Qual é o modelo do veículo?\t\t\t\t";
+    
     cin >> string_buffer;
     string_buffer.resize(NAME_SIZE);
     strcpy(client_buffer.vehicle.model, string_buffer.c_str());
 
-    cout << "Qual e a quilometragem do seu veiculo?" << endl;
-    cin >> client_buffer.vehicle.mileage;
-
-    struct Client o_cliente_ta_doido;
-    if (false)  cout << "Registrar client e o krl\n";
-    // if(! so_manager->register_client(client.name, client.vehicle, & o_cliente_ta_doido)) return false;
-
-    return true;
+    cout << "Qual é a quilometragem do seu veículo?\t\t\t";
     
-    // (rabisco)
-    //struct Vehicle;
-    //struct Person;
-    // bool register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, id_t person_id = ((id_t) - 1));
-    // (no futuro ->)
-    // bool register_client(const struct Person & person, const struct Vehicle & vehicle, struct Client * return_client, id_t person_id = ((id_t) - 1));
-};
-
-bool Seller::LoadClient(void)
-{
-    /*
-    id_t client_id;
-
-    int64_t eder;
-    if (! client_is_loaded)
-    {
-        cout << "What is the cliend ID?" << endl;
-        cin >> client_id;
+    do {
+        cin.clear();
+        cin.ignore(INT64_T_MAX, '\n');
+        client_buffer.vehicle.mileage = input_numeral();
         
-        // if (eder = client_manager.fetch_id(pica) >= 0 {      }
-    }
-    */
-    return false;
+    } while ((client_buffer.vehicle.mileage < 0) && (cout << "Entrada inválida para kilometragem. Redigite-a:\t\t"));
+
+    // TODO: deixar meió
+    printf("Pessoa\t| Nome: %-64s;\nVeículo\t| Modelo: %s, tipo: %s, kilometragem: %d\n",
+        client_buffer.name,
+        client_buffer.vehicle.model, client_buffer.vehicle.type, (int) client_buffer.vehicle.mileage);
+    
+    cout << "Deseja continuar com o registro? ";
+    if (! input_verification())
+        return REGISTERCLIENT_CANCEL;
+
+    client_is_loaded = false;
+
+    if (! so_manager->client_manager.register_client(client_buffer.name, client_buffer.vehicle, &client_buffer))
+        return REGISTERCLIENT_FAIL;
+
+    client_is_loaded = true;
+    return REGISTERCLIENT_SUCCESS;
 }
 
-bool Seller::GenerateSO() {
-    string issue;
+bool Seller::GenerateSO(void) {
+    if ((! client_is_loaded) && (! Seller::LoadClient())) {
+        cout << "Não foi possível carregar o cliente.\n";
+        return false;
+    }
     
-    cout << "Qual e o seu problema?" << endl;
+    cout << "Qual é o seu problema?\t";
+    
+    string issue;
     cin >> issue;
     issue.resize(SO_DESCRIPTION_SIZE);
+
+    cout << "Deseja abrir uma SO para <" << string(client_buffer.name) << ">? ";
+
+    if (! input_verification())
+    {
+        cerr << "cancl\n";
+        return false;
+    }
+
     return so_manager->new_order(issue.c_str(), client_buffer.id, &so_buffer);
-};
+}
 
-bool Seller::ApproveOrders() {
-    if(!so_manager->operate_order(so_buffer.id, & so_buffer)) {
-        return false;
-    };
-    return true; 
-};
+bool Seller::LoadClient(void) {
+    string name_buffer;
+    int64_t index;
 
-bool Seller::CloseOrders() {
-    if(!so_manager->close_order(so_buffer.id, & so_buffer)) {
-        return false;
-    };
-    return true; 
-};
+    cout << "Nenhum cliente está atualmente carregado no sistema." << endl;
 
-void Seller::Interface(void) {
-    
-    size_t opcao;
-
-    bool looping = true;
-    while (looping) {
-        cout << "What would you want to accomplish as a seller?" << endl;// pica
-        cout << "0\t->\tExit;" << endl;
-        cout << "1\t->\tRegister a client;" << endl;
-        cout << "2\t->\tGenerate a SO;" << endl;
-        cout << "3\t->\tApprove an order;" << endl;
-        cout << "4\t->\tClose an order." << endl;
-
-        cin >> opcao;
+    while (true) {
+        cout << "Digite o nome do cliente:\t";
         
-        switch (opcao) {
-            case 0:
-                looping = false;
-                break;
+        cin >> name_buffer;
+        name_buffer.resize(NAME_SIZE);
 
-            case 1:
-                if(!RegisterClient())
-                    cout << "Burro1!!!" << endl;
+        if ((index = so_manager->client_manager.fetch_person_name(name_buffer.c_str(), &client_buffer)) >= 0) {
+            client_is_loaded = true;
+            break;
+        }
+        else if (index == -1) 
+        {   
+            cout << "Não foi possível encontrar um cliente com o nome <" << name_buffer << ">." << endl;
+            cout << "Deseja prosseguir? ";
+
+            /*  Veryfing whether the user wants to keep the load-client cycle. */
+            if (! input_verification())
+                return false;
+        } 
+        else
+        {
+            cerr << "VTMNC COMPUTADOR" << endl;
+        }
+    }
+    return true;
+}
+
+bool Seller::ApproveOrders(void) {
+    if (! so_manager->operate_order(so_buffer.id, &so_buffer))
+        return false;
+    return true; 
+}
+
+bool Seller::CloseOrders(void) {
+    if(! so_manager->close_order(so_buffer.id, & so_buffer)) {
+        return false;
+    }
+    return true; 
+}
+
+#include <list>
+
+void Seller::interact(void) {
+    
+    size_t opcao = 0;
+    bool looping = true;
+    
+    while (looping) 
+    {
+        display_interaction_guide();
+
+        // When the input by <cin> fails it is default at 0.
+        cin >> opcao;
+        cin.clear();
+        cin.ignore(INT64_T_MAX,'\n');
+
+        list<struct ServiceOrder> budget_orders;
+
+        switch (opcao) {
+        case 0: // Exiting the menu
+            looping = false; 
+            break;
+        
+        case 1: // Registering a new client
+            switch (register_client_menu())
+            {
+            case REGISTERCLIENT_ALREADY_EXIST:
+                cerr << "VTMNC EXISTENTE" << endl;
                 break;
-            case 2:
-                if(!GenerateSO())
-                    cout << "Burro2!!!" << endl;
+                       
+            case REGISTERCLIENT_FAIL:
+                cerr << "VTMNC REGISTRANTE" << endl;
                 break;
-            case 3:
-                if(!ApproveOrders())
-                    cout << "Burro3!!!" << endl;
+                 
+            default:
                 break;
-            case 4:
-                if(!CloseOrders())
-                    cout << "Burro4!!!" << endl;
-                break;
-            default: 
-                cout << "Burro5!!!" << endl;
-                break;
+            }
+            
+            break;
+
+        case 2: // Generating a new SO
+            if (! GenerateSO()) {
+                cout << "Não foi possível gerar uma nova SO." << endl;
+            }
+            break;
+
+        case 3:
+
+            budget_orders = so_manager->so_category(SO_BUDGET);
+            for (struct ServiceOrder order : budget_orders)
+            {
+                printf("SO: #%llu\n", order.id);
+            }
+
+            so_manager->print_database_filtered([](const struct ServiceOrder & so) { return so.stage == SO_BUDGET; });
+            // so_manager->so_vizualizer();
+            so_manager->so_category_vizualizer(SO_BUDGET);
+            // TODO: terminar menu
+            // if (! ApproveOrders()) cerr << "Burro3!!!" << endl;
+            break;
+
+        case 4:
+
+
+            // TODO: terminar menu
+            // if (! CloseOrders())    cerr << "Burro4!!!" << endl;
+            break;
+
+        default: 
+            cerr << "Burro5!!!" << endl;
+            break;
         }
     }
     
-    cout << "Exited e o krl" << endl;
+    cerr << "Exited" << endl;
 }
 #endif
+
+void Seller::display_interaction_guide(void) const {
+    cout << "Qual alteração você deseja fazer?" << endl;
+    cout << "0\t->\tSair;" << endl;
+    cout << "1\t->\tRegistrar um cliente;" << endl;
+    cout << "2\t->\tGerar uma Ordem de Serviço;" << endl;
+    cout << "3\t->\tAprovar uma Ordem de Serviço;" << endl;
+    cout << "4\t->\tFechar uma Ordem de Serviço." << endl;
+    fflush(stdout);
+}

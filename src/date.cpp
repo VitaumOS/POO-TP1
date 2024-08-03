@@ -3,18 +3,32 @@
 	(...) */
 
 
-#include "headers/date.h"
+#include "headers/date.hpp"
 #include <iostream>
 #include <cstdlib>
 #include <time.h>
+#include <stdexcept>
 
 
-bool get_date(Date & the_date) {
+class date_error : virtual public std::runtime_error {
+public:
+	date_error(const char * string) : std::runtime_error(string) {
+
+	}
+};
+
+void get_date_e(struct _Date & the_date) {
+	if (! get_date(the_date))
+		throw date_error("Failed to get the current date.");
+}
+
+bool get_date(struct _Date & the_date) {
 
 	time_t current_time = time(nullptr);
 	struct tm * time_components = localtime(&current_time);
-	if (time_components == nullptr)
+	if (time_components == nullptr) {
 		return false;
+	}
 
 	the_date.year = time_components->tm_year;
 	the_date.month = time_components->tm_mon;

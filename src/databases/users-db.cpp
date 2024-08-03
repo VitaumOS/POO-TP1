@@ -2,17 +2,18 @@
 
     Defines the users database. */
 
-/*	Last update: 21/07/2024. */
+/*	Last update: 03/08/2024. */
 
 
 #include "users-db.hpp"
 #include <string.h>	// for strcpy, strcmp
 #include <assert.h>
+#include <stdexcept>
 
 
 struct USERDB_stream_header {
     id_t item_qtt;
-    
+
     struct {
         id_t adm;
         id_t seller;
@@ -37,6 +38,14 @@ Users_DB::Users_DB(void) : Database(users_DB_filename, sizeof(item_qtt) + sizeof
     print_database();
 }
 
+Users_DB::Users_DB(SO_Manager * const so_manager) : Users_DB()
+{
+    if (so_manager == nullptr)
+        throw std::runtime_error("Invalid SO_Manager on Users_DB.");
+
+    this->so_manager = so_manager;
+}
+
 Users_DB::~Users_DB(void) {
     if (stream == nullptr) return; // the database is already closed.
 
@@ -59,12 +68,28 @@ bool Users_DB::reset_database(void) {
     /*  Initializing the base admin login *
      *  --------------------------------- */
 
-    const user_username_t username = "cmrd";
-    const user_password_t password = "dhr";
+    struct _Date date_of_now;
+    if (! get_date(date_of_now))
+        return false;
 
+    const struct UserData the_user = {
+        .id = 0,
+        .type = USER_TYPE_ADM,
+        .username = "cmrd",
+        .password = "dhr",
 
+        .registry_date = date_of_now,
+        .last_login = { 0, 0, 0, 0, 0, 0 }
+    };
+    
+    if (! write_element(item_qtt, &the_user)) {
 
+        return false;
+    }
 
+    ++ item_qtt;
+    ++ next_id.adm;
+    
     return true;
 }
 
@@ -97,10 +122,7 @@ bool Users_DB::update_stream_header(void) const {
     return fwrite(&_stream_header, sizeof(_stream_header), 1, stream) > 0;
 }
 
-
-
-
-int64_t Users_DB::fetch_username(const user_username_t username, struct UserData * const return_data) {
+int64_t Users_DB::fetch_username(const username_string_t username, struct UserData * const return_data) {
 
     struct UserData ud_buffer;
     size_t iterator = 0;
@@ -116,7 +138,7 @@ int64_t Users_DB::fetch_username(const user_username_t username, struct UserData
     return -1;
 }
 
-bool Users_DB::register_user(enum USER_TYPE type, const user_username_t username, const user_password_t password) {
+bool Users_DB::register_user(enum USER_TYPE type, const username_string_t username, const password_string_t password) {
     printf(">> [%s(%d, %s, %s)]\n", __func__, (int) type, username, password);
 
     struct UserData data_buffer;
@@ -143,6 +165,7 @@ bool Users_DB::register_user(enum USER_TYPE type, const user_username_t username
     
     struct UserData the_user = {
         .id = the_user_id,
+        .type = type,
         .username = "undef",
         .password = "undef",
 
@@ -170,22 +193,23 @@ bool Users_DB::register_user(enum USER_TYPE type, const user_username_t username
     return true;
 }
 
+/*
 
-
-bool Users_DB::login(const user_username_t username, const user_password_t password) {
+*/
+bool Users_DB::login(const username_string_t username, const password_string_t password, class User ** the_user) {
     std::cout << "Attempting logging as " << std::string(username) << " (" <<
         std::string(password) << ")" << std::endl;
 
-    struct UserData the_user;
+    struct UserData the_user_data;
     int64_t user_index;
-    if ((user_index = fetch_username(username, &the_user)) < 0) {
+    if ((user_index = fetch_username(username, &the_user_data)) < 0) {
         // the username isn't on the database.
         std::cerr << "[Users_DB::login]: Username not found." << std::endl;
         return false;
     }
 
     // comparing credentials (checking the password)
-    if (strcmp(password, the_user.password)) {
+    if (strcmp(password, the_user_data.password)) {
         std::cerr << "[Users_DB::login]: Wrong Password." << std::endl;
         return false;
     }
@@ -197,28 +221,32 @@ bool Users_DB::login(const user_username_t username, const user_password_t passw
         return false;
     }
 
-    the_user.last_login = date_of_now;
-    if (! write_element(user_index, &the_user))
+    the_user_data.last_login = date_of_now;
+    if (! write_element(user_index, &the_user_data))
     {
         std::cerr << "[Users_DB::login]: Couldn't update user." << std::endl;
         return false;
+    }
+    
+    std::cout << "Nothing" << std::endl;
+    printf(">>> %p\n", so_manager);
+
+    // TODO: To instantiate the user to return.
+    switch (the_user_data.type)
+    {
+    case USER_TYPE_ADM:     * the_user = new Administrator(the_user_data.id.id, so_manager, this);  break;
+    case USER_TYPE_SLR:     * the_user = new Seller(the_user_data.id.id, so_manager);               break;
+    case USER_TYPE_MCH:     * the_user = new Mechanic(the_user_data.id.id, so_manager);             break;
+    default:                return false;
     }
 
     return true;
 }
 
 
-
-
-
-
-
-
-
-
 // db repr
 
-inline void Users_DB::fprint_element(FILE * _OutputStream, const struct UserData * _User)
+inline void Users_DB::fprint_element(FILE * _OutputStream, const struct UserData * _User) const
 {
     fprintf(_OutputStream, "[%llu | %06llu:%02d]: ",
         _User->id.id, _User->id.serial, _User->id.user_type);

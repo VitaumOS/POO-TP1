@@ -57,7 +57,7 @@ typedef enum {
 #define print_c_string(_String)	(fputs(_String, stdout) > 0)
 
 
-
+/*
 class Screen {
 protected:
 	int width, height;
@@ -96,7 +96,6 @@ public:
 		if ((pos > 8) || (pos < 0))
 			return false;
 		
-		/*
 			TOP_LEFT,
 			MID_LEFT,
 			BOT_LEFT,
@@ -108,7 +107,6 @@ public:
 			TOP_RIGHT,
 			MID_RIGHT,
 			BOT_RIGHT,
-		*/
 
 		aec_beginning();
 		
@@ -185,7 +183,10 @@ public:
 		return _Screen->go_to_abs(x, y) && print_c_string(label_str.c_str());
 	}
 };
+*/
 
 
+bool input_verification(void);
+int64_t input_numeral(void);
 
 #endif // _UI_HEADER_

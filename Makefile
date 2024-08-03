@@ -23,7 +23,7 @@ dir_tmp				:= $(dir_dat)cache/
 # -----
 
 source_files		:= $(wildcard $(dir_src)*.cpp) $(wildcard $(dir_src)*/*.cpp)
-header_files		:= $(wildcard $(dir_hdr)*.h) $(wildcard $(dir_src)*/*.hpp)
+header_files		:= $(wildcard $(dir_hdr)*.h) $(wildcard $(dir_hdr)*.hpp) $(wildcard $(dir_src)*/*.hpp)
 object_files		:= $(foreach object,$(subst .cpp,.o,$(subst $(dir_src),,$(source_files))),$(dir_obj)$(object))
 
 target_exe			:= $(dir_bin)workshop.exe

@@ -8,14 +8,17 @@
 
 
 #include <inttypes.h>
-#include "date.h"
 
+#if defined(__cplusplus)
+#	include "date.hpp"
+#endif
 
-/*	Sizes *
- *	===== */
+/*	Sizes & limits *
+ *	============== */
 
 /*  Defines the standard string size for names. */
-constexpr size_t NAME_SIZE = 64ULL;
+constexpr size_t NAME_SIZE		= 64ULL;
+constexpr int64_t INT64_T_MAX	= 9223372036854775807LL;
 
 
 /*	Types *

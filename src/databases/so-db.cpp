@@ -2,13 +2,15 @@
 
 	Defines the service-orders (SOs) database. */
 
-/*	Last update: 20/07/2024. */
+/*	Last update: 03/08/2024. */
 
 
 #include "so-db.hpp"
 #include <string.h>	// for strcpy, strcmp
+#include "../headers/ui.hpp"
+#include <stdexcept>
 #include <assert.h>
-
+#include <iterator>
 
 struct SOM_stream_header {
 	id_t item_qtt = 0;
@@ -31,7 +33,8 @@ SO_Manager::SO_Manager(void) : Database(SODB_filename, sizeof(first_active) + si
 }
 
 SO_Manager::~SO_Manager(void) {
-	if (stream == nullptr)	return;
+	if (stream == nullptr)	
+		return;
 
 	std::cout << "Final SO-DB state:" << std::endl;
 	print_database();
@@ -72,7 +75,6 @@ bool SO_Manager::update_stream_header(void) const {
 	rewind(stream);
 	return fwrite(&_stream_header, stream_header_size, 1, stream) > 0;
 }
-
 
 /*  Attempts creating a new service-order into the database.
 
@@ -311,20 +313,25 @@ bool SO_Manager::advance_order(id_t id, const struct ServiceOrder * src_so)
 	return false;
 }
 
+/*
+
+*/
 bool SO_Manager::get_order(id_t id, struct ServiceOrder * return_so) const
 {
-	return false;
+	if (id >= item_qtt)
+		return false;
+	
+	return read_element(id, return_so);
 }
 
-std::list<struct ServiceOrder> SO_Manager::so_category(SERVICE_ORDER_STAGE category)
-{
+/*  Lists all SOs in the database that fits a certain stage category. */
+std::list<struct ServiceOrder> SO_Manager::so_category(SERVICE_ORDER_STAGE category) {
 	return list_filter([=](const struct ServiceOrder & so) { return so.stage == category; }, 0, ((size_t) -1));
 }
 
+/*
 
-// db repr
-
-
+*/
 std::ostream & operator<<(std::ostream & stream, const struct ServiceOrder & so)
 {
 	// ID.
@@ -334,7 +341,7 @@ std::ostream & operator<<(std::ostream & stream, const struct ServiceOrder & so)
 
 	// SO stage.
 	char stage[5];
-#define STAGE_STRING_FORMATTING	"%-4s"
+	#define STAGE_STRING_FORMATTING	"%-4s"
 
 	switch (so.stage)
 	{
@@ -365,13 +372,10 @@ std::ostream & operator<<(std::ostream & stream, const struct ServiceOrder & so)
 	stream << std::string(so.issue_description);
 
 	return stream;
-}
+}	
 
-inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder * _SO)
+inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder * _SO) const
 {
-	// SO "header"
-	// fprintf(_OutputStream, "[%03llu]: ", _SO->id);
-
 	fprintf(_OutputStream, ": ");
 	switch (_SO->stage)
 	{
@@ -398,5 +402,343 @@ inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder 
 		((double) _SO->hardware_price) / ((double) 100.0), ((double) _SO->labor_price) / ((double) 100.0));
 
 	fprintf(_OutputStream, " [%-16s]", _SO->issue_description);
+}
+
+inline void SO_Manager::repr_el(const struct ServiceOrder & _SO) const {
+	switch (_SO.stage)
+	{
+	case SO_OPEN:			fprintf(stdout, "%-4s", "OPEN"); break;
+	case SO_BUDGET:			fprintf(stdout, "%-4s", "BDGT"); break;
+	case SO_MAINTENANCE:	fprintf(stdout, "%-4s", "MNTC"); break;
+	case SO_CLOSED:			fprintf(stdout, "%-4s", "CLOS"); break;
+	case SO_CANCELED:		fprintf(stdout, "%-4s", "CANC"); break;
+	case SO_CLOSED_BUDGET:	fprintf(stdout, "%-4s", "CBUD"); break;
+	default:				fprintf(stdout, "%-4s", "UNKW"); break;
+	}
+
+	// Date
+	fprintf(stdout, " + "); // _SO.id
+	fprint_date(stdout, _SO.creation_date);
+	fprintf(stdout, "\t* ");
+	fprint_date(stdout, _SO.update_date);
+	fprintf(stdout, " | ");
+
+	fprintf(stdout, "[%06llu:%02d], ",
+		_SO.client_id.person_id, _SO.client_id.vehicle_id);
+
+	fprintf(stdout, "hardware=R$%05.2lf, labor=R$%06.2lf",
+		((double) _SO.hardware_price) / ((double) 100.0), ((double) _SO.labor_price) / ((double) 100.0));
+
+	fprintf(stdout, " [%-16s]", _SO.issue_description);
+}
+
+
+
+
+static constexpr size_t literal_string_length(const char * _String)
+{
+	size_t iterator = 0;
+	while (_String[iterator ++]);
+	return iterator;
+}
+
+static inline void print_n_char(char c, size_t n) {
+	while (n --)
+		putchar(c);
+}
+
+/*
+22, 12, 40
+239, 203, 104
+225, 239, 230
+174, 183, 179
+0, 4, 17
+*/
+
+size_t SO_Manager::print_vpage(size_t vpage_index, size_t focus_index)
+{
+	constexpr size_t vpage_size = 10;
+	size_t index = vpage_size * vpage_index;
+
+	if (index >= item_qtt)	// exceeded
+		return 0;
+
+	struct ServiceOrder so_buffer[vpage_size];
+
+	size_t qtt_read = read_elements(index, vpage_size, so_buffer);
+	size_t iterator = 0;
+	for (; iterator < qtt_read; iterator ++)
+	{
+		if (iterator == focus_index)
+		{
+			aec_bg_rgb(0, 4, 17);
+			aec_fg_rgb(174, 183, 179);
+			fprintf(stdout, "[%03llu] ", index + iterator);
+			fprint_element(stdout, &so_buffer[iterator]);
+			aec_reset();
+			putchar('\n');
+		}
+		else {
+			fprintf(stdout, "[%03llu] ", index + iterator);
+			fprint_element(stdout, &so_buffer[iterator]);
+			putchar('\n');
+		}
+	}
+
+	while (iterator < vpage_size) {
+		fprintf(stdout, "[%03llu] ", index + (iterator ++));
+		print_n_char('-', 3);
+		printf(" / * / ");
+		print_n_char('-', 3);
+		putchar('\n');
+	}
+
+	return qtt_read;
+}
+
+size_t SO_Manager::print_lpage(std::list<struct ServiceOrder> & the_list, 
+	size_t lpage_index, size_t focus_index) const
+{
+	const size_t index = lpage_index * vpage_size;
+	size_t iterator_limit = vpage_size;
+	if ((index + vpage_size) > the_list.size())
+		iterator_limit = the_list.size() - index;
+
+	size_t iterator = 0;
+	std::list<struct ServiceOrder>::iterator list_ptr = std::next(the_list.begin(), index);
+
+	struct ServiceOrder so;
+	for (; iterator < iterator_limit; iterator ++)
+	{
+		if (iterator == focus_index)
+		{
+			so = static_cast<struct ServiceOrder> (* list_ptr);
+
+			aec_bg_rgb(0, 4, 17);
+			aec_fg_rgb(174, 183, 179);
+			fprintf(stdout, "[%03llu]\t", so.id);
+
+			SO_Manager::repr_el(so);
+
+			aec_reset();
+			putchar('\n');
+
+			list_ptr = std::next(list_ptr, 1);
+		}
+		else {
+			so = static_cast<struct ServiceOrder>(* list_ptr);
+			
+			fprintf(stdout, "[%03llu]\t", so.id);
+
+			SO_Manager::repr_el(so);
+			putchar('\n');
+
+			list_ptr = std::next(list_ptr, 1);
+		}
+	}
+
+	while ((iterator ++) < vpage_size) {
+		fprintf(stdout, "[---] ");
+		print_n_char('-', 3);
+		printf(" / * / ");
+		print_n_char('-', 3);
+		putchar('\n');
+	}
+
+	return the_list.size() - index;
+}
+
+void SO_Manager::sov_render_header(void) const 
+{
+	constexpr const char * menu_title = "SO vizualizer";
+	constexpr size_t title_length = literal_string_length(menu_title);
+
+	print_n_char('=', 50); putchar('\n');
+
+	printf("%s\n", menu_title);
+	print_n_char('*', title_length - 1); putchar('\n');
+
+	fflush(stdout);
+}
+
+void SO_Manager::sov_render_footer(void) const
+{
+	print_n_char('\n', 2);
+	print_n_char('-', 10); putchar('\n');
+	std::cout << "\tw:\tPrevious item\n";
+	std::cout << "\ts:\tNext item\n";
+	std::cout << "\ta:\tPrevious page\n";
+	std::cout << "\td:\tNext page\n";
+	std::cout << "\ti:\tInspect SO\n";
+	std::cout << "\tq:\tQuit vizualizer\n";
+	print_n_char('=', 50);
+	print_n_char('\n', 2);
+
+	fflush(stdout);
+}
+
+void SO_Manager::sov_process_io(const size_t & vpage_index_max)
+{
+	char cstring_buffer[16];
+
+	std::cout << cmd_output_buffer;
+	std::cout << ": ";
+	std::cin >> cmd_input_buffer;
+
+	cmd_output_buffer.clear();
+	cmd_output_buffer += "<" + cmd_input_buffer + ">\n";
+	for (char command : cmd_input_buffer) {
+
+		switch (command)
+		{
+		case 'a':
+			if (vpage_index > 0) {
+				-- vpage_index;
+			}
+			else {
+				cmd_output_buffer += "* There's no previous page to show.\n";
+			}
+			break;
+
+		case 'd':
+			if (vpage_index < vpage_index_max) {
+				++ vpage_index;
+			}
+			else {
+				cmd_output_buffer += "* There's no next page to show.\n";
+			}
+			break;
+
+		case 'w':
+			if (focus_index > 0) {
+				focus_index --;
+			}
+			else {
+				if (vpage_index > 0) {
+					-- vpage_index;
+					focus_index = vpage_size - 1;
+				}
+			}
+			break;
+
+		case 's':
+			++ focus_index;
+			if (focus_index >= vpage_size) {
+				if (vpage_index < vpage_index_max) {
+					vpage_index ++;
+				}
+				focus_index = 0;
+			}
+			else if (focus_index >= vpage_item_qtt)
+			{
+				-- focus_index;
+			}
+			break;
+
+		case 'i':
+			SO_Manager::so_inspect(static_cast<so_id_t> (focus_index + vpage_index * vpage_size));
+			break;
+
+		case 'q':
+			running_menu = false;
+			break;
+
+		default:
+			sprintf(cstring_buffer, "%c", command);
+			cmd_output_buffer += "* \"" + std::string(cstring_buffer) + "\" is not recognized.\n";
+			break;
+		}
+	}
+}
+
+void SO_Manager::so_vizualizer(void) 
+{
+	cmd_input_buffer.clear();
+	cmd_output_buffer.clear();
+	
+	const size_t vpage_index_max = item_qtt / vpage_size;
+
+	while (running_menu) {
+		/*	Rendering: header */
+		clean_screen();
+		SO_Manager::sov_render_header();
+
+		/*	Rendering: body */
+		print_n_char('\n', 2);
+
+		printf("Page: #%03llu\n", vpage_index);
+		fprintf(stdout, "SO-ID\tSTATE\t\tCREATION DATE\tUPDATE DATE\t\n");
+		vpage_item_qtt = SO_Manager::print_vpage(vpage_index, focus_index);
+
+		/*	Rendering: footer */
+		SO_Manager::sov_render_footer();
+
+		/*	Input / Output	*/
+		SO_Manager::sov_process_io(vpage_index_max);
+	}
+	running_menu = true;
+
+	clean_screen();
+}
+
+void SO_Manager::so_category_vizualizer(SERVICE_ORDER_STAGE category)
+{
+	cmd_input_buffer.clear();
+	cmd_output_buffer.clear();
+
+	std::list<struct ServiceOrder> SOs = SO_Manager::so_category(category);
+
+	const size_t vpage_index_max = SOs.size() / vpage_size;
+
+	while (running_menu) {
+		/*	Rendering: header */
+		clean_screen();
+		SO_Manager::sov_render_header();
+
+		/*	Rendering: body */
+		print_n_char('\n', 2);
+
+		printf("Page: #%03llu\n", vpage_index);
+		fprintf(stdout, "SO-ID\tSTATE\t\tCREATION DATE\tUPDATE DATE\t\n");
+		vpage_item_qtt = SO_Manager::print_lpage(SOs, vpage_index, focus_index);
+
+		/*	Rendering: footer */
+		SO_Manager::sov_render_footer();
+
+		/*	Input / Output	*/
+		SO_Manager::sov_process_io(vpage_index_max);
+	}
+	running_menu = true;
+
+	clean_screen();
+}
+
+/*
+
+*/
+void SO_Manager::so_inspect(so_id_t id)
+{
+	aec_clean();
+
+	printf("NOT YET IMPLEMENTED\n(ENTER ANYTHING TO LEAVE)\n");
+	char c;
+	std::cin >> c;
+}
+
+
+
+/*	class SO_Vizualizer *
+ *	=================== */
+
+SO_Vizualizer::SO_Vizualizer(SO_Manager * so_manager) : so_manager(so_manager)
+{
+	if (so_manager == nullptr)
+		throw std::runtime_error("Invalid SO_Manager to SO_Vizualizer.");
+}
+
+void SO_Vizualizer::sov_menu(void)
+{
+	printf("\n\n>\t\tBLANK\n\n");
+	// BLANK
 }
 

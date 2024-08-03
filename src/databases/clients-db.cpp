@@ -86,8 +86,10 @@ int64_t ClientsManager::fetch_person_id(id_t person_id, size_t _From) const {
 	size_t iterator = _From;
 	while (iterator < item_qtt)
 	{
-		if (! read_element(iterator, &client_buffer))
+		if (! read_element(iterator, &client_buffer)) {
+
 			return -2;
+		}
 
 		if (client_buffer.id.person_id == person_id)
 			return (int64_t) iterator;
@@ -116,6 +118,31 @@ int64_t ClientsManager::fetch_client_id(const client_id_t & ID, size_t _From) co
 	return -1;
 }
 
+int64_t ClientsManager::fetch_person_name(const char person_name[NAME_SIZE], size_t _From) const {
+	struct Client client_buffer;
+
+	size_t iterator = _From;
+	while (iterator < item_qtt)
+	{
+		if (! read_element(iterator, &client_buffer))
+			return -2LL;
+
+		if (! strcmp(person_name, client_buffer.name))
+			return (int64_t) iterator;
+
+		iterator ++;
+	}
+	return -1LL;
+}
+
+int64_t ClientsManager::fetch_person_name(const char person_name[NAME_SIZE], struct Client * client_buffer, size_t _From) const {
+	const int64_t index = fetch_person_name(person_name, _From);
+
+	if ((index >= 0) && (! ClientsManager::read_element(index, client_buffer)))
+		return -3;
+	return index;
+}
+
 bool ClientsManager::get_client(const client_id_t & ID, struct Client * const return_client)
 {
 	if (ID.person_id >= next_id)
@@ -133,11 +160,11 @@ bool ClientsManager::get_client(const client_id_t & ID, struct Client * const re
 bool ClientsManager::register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, struct Client * const return_client, id_t person_id) {
 	if (person_id == ((id_t) -1))
 		person_id = next_id;
-
+	
 	printf("[%s] person-id: %llu\n", __func__, person_id);
 
 	struct Client person_registry;	// will track the a first client's for the person.
-
+	
 	// Determining the vehicle's id.
 	int64_t index = -1;	// tracks the index from fetching the person's id.
 	uint8_t vehicle_index = 0;	// "counts" occurrences of the person on the DB.
@@ -158,7 +185,6 @@ bool ClientsManager::register_client(const char name[NAME_SIZE], const struct Ve
 				fprintf(stderr, "[%s]: The registered person's name for the client does not match.\n", __func__);
 				return false;
 			}
-
 		}
 		vehicle_index ++;
 	}
@@ -222,10 +248,7 @@ bool ClientsManager::register_client(const char name[NAME_SIZE], const struct Ve
 	return false;
 }
 
-
-// db repr
-
-inline void ClientsManager::fprint_element(FILE * _OutputStream, const struct Client * _Client)
+inline void ClientsManager::fprint_element(FILE * _OutputStream, const struct Client * _Client) const 
 {
 	fprintf(_OutputStream, "[%06llu:%02d]: ",
 		_Client->id.person_id, _Client->id.vehicle_id);

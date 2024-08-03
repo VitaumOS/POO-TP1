@@ -10,7 +10,10 @@
 
 
 #include "../users/user.hpp"
+#include "../users/admin.hpp"
+#include "../users/seller.hpp"
 #include "databases.hpp"
+#include "so-db.hpp"
 
 
 enum USER_TYPE {
@@ -18,6 +21,7 @@ enum USER_TYPE {
     USER_TYPE_SLR,
     USER_TYPE_MCH
 };
+
 
 typedef union {
     id_t id;
@@ -34,6 +38,7 @@ constexpr c_filepath users_DB_filename = "data/users.bin";
 /*  Represents the data that is stored on the database for each user. */
 struct UserData {
     user_id_t id;
+    enum USER_TYPE type;
 
     char username[username_string_length];
     char password[password_string_length];
@@ -45,8 +50,8 @@ struct UserData {
 
 class Users_DB : virtual public Database <struct UserData> {
 private:
-
-    void fprint_element(FILE * _OutputStream, const struct UserData * _User);
+    
+    void fprint_element(FILE * _OutputStream, const struct UserData * _User) const;
 
     /*  Stream-header */
     struct {
@@ -59,14 +64,19 @@ private:
     bool retrieve_stream_header(void);
     bool update_stream_header(void) const;
 
-    int64_t fetch_username(const user_username_t username, struct UserData * const return_data);
-    
+    SO_Manager * so_manager;
+
 public:
     Users_DB(void);
+    Users_DB(SO_Manager * const so_manager);
     ~Users_DB(void);
 
-    bool register_user(enum USER_TYPE type, const user_username_t username, const user_password_t password);
-    bool login(const user_username_t username, const user_password_t);
+    // bool login(const username_string_t, const password_string_t, class User * const);
+
+    bool register_user(enum USER_TYPE type, const username_string_t username, const password_string_t password);
+    bool login(const username_string_t, const password_string_t, class User ** the_user);
+
+    int64_t fetch_username(const username_string_t username, struct UserData * const return_data);
 };
 
 

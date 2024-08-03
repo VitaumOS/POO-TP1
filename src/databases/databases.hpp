@@ -60,8 +60,8 @@ private:
     virtual bool reset_database(void);      
 
 protected:
-    // The database's file-stream.
-    FILE * stream;
+	// The database's file-stream.
+    FILE * stream;	
 
     /*  Stream-header attributes : keeps overall information of the stream. 
         As child classes derives from this one, other information shall be aggregated
@@ -88,7 +88,7 @@ protected:
         The element is specified by its index; the element is written by reference.
         Returns success; fails in case of IO sequencing. In case of fail, the stream
         pointer state is undeterminated. */
-    inline bool read_element(id_t index, ElementType * const _DstItem) const {
+	inline bool read_element(id_t index, ElementType * const _DstItem) const {
         return (fseek(stream, stream_header_size + index * sizeof(ElementType), SEEK_SET) == 0) && 
             (fread(_DstItem, sizeof(ElementType), 1, stream) > 0);
     }
@@ -102,10 +102,18 @@ protected:
             (fwrite(_SrcItem, sizeof(ElementType), 1, stream) > 0);
     }
 
+	inline size_t read_elements(id_t from_index, size_t n, ElementType * const _DstBuffer) const {
+		if (fseek(stream, stream_header_size + from_index * sizeof(ElementType), SEEK_SET) != 0)
+			return 0;
+		return fread(_DstBuffer, sizeof(ElementType), n, stream);
+	}
+
     /*  Database Representation
         ----------------------- */
     
-    virtual inline void fprint_element(FILE * _OutputStream, const ElementType * _Element) { fprintf(_OutputStream, "NONE%p", _Element); };
+    virtual inline void fprint_element(FILE * _OutputStream, const ElementType * _Element) const { 
+		fprintf(_OutputStream, "NONE%p", _Element); 
+	}
 
     /*  Represents the database onto an output stream, sectioned inclusively, from a start to an end
         - (_From) and (_To) respectively.
@@ -120,6 +128,8 @@ protected:
 public:
     Database(const char * filename);
     ~Database(void);
+
+	size_t print_database_filtered(std::function<bool(const ElementType &)> check, FILE * _OutputStream = stdout, size_t _From = 0, size_t _To = 0);
 
     /*  Returns if the database initialization was successfully done. 
         In case of fail, the object shall not be used. */
@@ -136,14 +146,14 @@ Database<ElementType>::overwrite_stream(void) { return ((stream = fopen(filename
 template <typename ElementType> inline bool
 Database<ElementType>::reset_database(void) {
 	item_qtt = 0;
-	return update_stream_header();
+	return Database::update_stream_header();
 }
 
 template <typename ElementType> inline bool
 Database<ElementType>::initialize_stream(void)
 {
 	stream = nullptr;
-	if (((stream = fopen(filename, "r+b")) == nullptr) && (! overwrite_stream())) {
+	if (((stream = fopen(filename, "r+b")) == nullptr) && (! Database::overwrite_stream())) {
 		init_succeeded = false;
 		std::cerr << "Couldn't initialize the database's stream properly." << std::endl;
 		return false;
@@ -158,7 +168,7 @@ Database<ElementType>::Database(const char * filename, size_t stream_header_size
 	init_succeeded = true;
 	item_qtt = 0;
 
-	if (! initialize_stream())
+	if (! Database::initialize_stream())
 		return;
 }
 
@@ -168,11 +178,11 @@ Database<ElementType>::Database(const char * filename) : Database(filename, size
 
 	/*	If reading the stream-header fails, then probably the database is empty.
 		In that case, it is reset. */
-	if (! retrieve_stream_header())
+	if (! Database::retrieve_stream_header())
 	{
 		// Checking if the stream is actually empty.
 		if ((! fseek(stream, 0, SEEK_END)) && ftell(stream) == 0)
-			reset_database();
+			Database::reset_database();
 	}
 }
 
@@ -180,10 +190,10 @@ template <typename ElementType>
 Database<ElementType>::~Database(void) {
 	if (stream == nullptr)	return;
 
-	if (! update_stream_header())
+	if (! Database::update_stream_header())
 		std::cerr << "Stream header couldn't be written at <Database> class object." << std::endl;
 
-	finalize_stream();
+	Database::finalize_stream();
 }
 
 template <typename ElementType>
@@ -217,9 +227,8 @@ bool Database<ElementType>::update_stream_header(void) const {
 #include <cstdlib>
 
 template <typename ElementType>
-bool Database<ElementType>::print_database(FILE * _OutputStream, size_t _From, size_t _To)
+size_t Database<ElementType>::print_database_filtered(std::function<bool(const ElementType &)> check, FILE * _OutputStream, size_t _From, size_t _To)
 {
-	// _To = 0 will force printing the entire database.
 	if ((_To == 0) && (item_qtt > 0))
 		_To = item_qtt;
 
@@ -228,16 +237,26 @@ bool Database<ElementType>::print_database(FILE * _OutputStream, size_t _From, s
 	if (fseek(stream, stream_header_size, SEEK_SET) != 0)
 		return false;
 
+	printf("ftell: %lld\n", (long long) ftell(stream));
+
 	size_t iterator = _From;
-	while ((iterator <= _To) && read_element(iterator ++, &element_buffer)) {
-		// not safe inside the loop yet*
+	while ((iterator <= _To) && read_element(iterator ++, &element_buffer))
+	{
+		if (! check(element_buffer))
+			continue;
 
 		fprintf(_OutputStream, "[%03llu] ", iterator - 1);
 		fprint_element(_OutputStream, &element_buffer);
 		fprintf(_OutputStream, "\n");
 	}
 
-	return iterator == (_To + 1);
+	return iterator;
+}
+
+template <typename ElementType>
+bool Database<ElementType>::print_database(FILE * _OutputStream, size_t _From, size_t _To)
+{
+	return print_database_filtered([](const ElementType &) { return true; }, _OutputStream, _From, _To) == (_To + 1);
 }
 
 template <typename ElementType>
@@ -254,7 +273,6 @@ std::list<ElementType> Database<ElementType>::list_filter(std::function<bool(con
 	}
 
 	ElementType element_buffer;
-
 	for (size_t i = _From; i <= _To; ++ i)
 	{
 		if (! read_element(i, & element_buffer))

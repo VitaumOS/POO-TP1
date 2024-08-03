@@ -10,7 +10,7 @@
 
 
 #include "../headers/vehicle.h"
-#include "../headers/date.h"
+#include "../headers/date.hpp"
 #include "databases.hpp"
 
 
@@ -46,7 +46,7 @@ struct Client {
     // Client-associated person's name.
     // TODO: struct Person to contain it. (Scalability)
     char name[NAME_SIZE];
-
+    
     // Client-associated vehicle's information.
     struct Vehicle vehicle;
 
@@ -56,21 +56,22 @@ struct Client {
 
 /*  A homogeneous database for the clients. */
 class ClientsManager : virtual public Database <struct Client> {
-private: friend class SO_Manager;
+private: 
+    friend class SO_Manager;
+       
+    /*  Stream-header */
+    id_t next_id;   // The next sequential person ID to be filled on the database.
 
-       /*  Stream-header */
-       id_t next_id;   // The next sequential person ID to be filled on the database.
+    bool reset_database(void);
+    bool retrieve_stream_header(void);
+    bool update_stream_header(void) const;
 
-       bool reset_database(void);
-       bool retrieve_stream_header(void);
-       bool update_stream_header(void) const;
-
-       inline void fprint_element(FILE * _OutputStream, const struct Client *);
+    inline void fprint_element(FILE * _OutputStream, const struct Client *) const;
 
 public:
     ClientsManager(void);
     ~ClientsManager(void);
-
+    
     bool register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, struct Client * const return_client, id_t person_id = ((id_t) - 1));
 
     // Returns what should be the next person's id on the client's database sequence.
@@ -83,7 +84,9 @@ public:
         The return is (-1) in case of not founding; and (-2) in case of IO errors. */
     int64_t fetch_person_id(id_t person_id, size_t _From = 0) const;
     int64_t fetch_client_id(const client_id_t & client_id_t, size_t _From = 0) const;
+    
     int64_t fetch_person_name(const char person_name[NAME_SIZE], size_t _From = 0) const;
+    int64_t fetch_person_name(const char person_name[NAME_SIZE], struct Client *, size_t _From = 0) const;
 };
 
 

@@ -37,6 +37,7 @@ typedef enum _SOS {
     SO_CLOSED,          // Closed SO. SO closed from "maintenance" state.
     SO_CANCELED,        // Closed SO. SO closed from "open" state.
     SO_CLOSED_BUDGET,   // Closed SO. SO closed from "budget" state.
+    SO_ALL,
 } SERVICE_ORDER_STAGE;
 
 typedef id_t so_id_t;
@@ -64,6 +65,10 @@ typedef enum _SOH {
     SOH_SUCCESS
 } SO_HANDLING;
 
+/*  SOV ATTRIBUTE. 
+    TODO: move. */
+constexpr size_t vpage_size = 10;
+
 
 class SO_Manager : virtual public Database <struct ServiceOrder> {
 private:
@@ -74,9 +79,7 @@ private:
     /*  Stream-header */
     id_t first_active; // The oldest active element in the database.
 
-    inline void fprint_element(FILE * _OutputStream, const struct ServiceOrder * _SO);
-
-    ClientsManager client_manager;
+    inline void fprint_element(FILE * _OutputStream, const struct ServiceOrder * _SO) const;
 
     currency_t sum_hardware_budget(const struct PartsBudget & budget) const {
         currency_t sum = 0;
@@ -92,14 +95,32 @@ private:
         return DEFAULT_LABOR_PRICE + ((currency_t) (LINEAR_COEFFICIENT * SO.hardware_price));
     }
 
+    /*  Vizualizer and representation inner methods. */
+    std::string cmd_input_buffer;                               // TODO: move
+    std::string cmd_output_buffer;                              // TODO: move
+    size_t vpage_index = 0;                                     // TODO: move         
+    size_t focus_index = 0;                                     // TODO: move
+    size_t vpage_item_qtt = 0;                                  // TODO: move
+    bool running_menu = true;                                   // TODO: move
+    void repr_el(const struct ServiceOrder & so) const;         // TODO: move
+    size_t print_vpage(size_t vpage_index, size_t focus_index); // TODO: move
+    size_t print_lpage(std::list<struct ServiceOrder> & the_list,
+        size_t lpage_index, size_t focus_index) const;          // TODO: move
+    void so_inspect(so_id_t id);                                // TODO: move
+    void sov_render_header(void)    const;                      // TODO: move
+    void sov_render_footer(void)    const;                      // TODO: move
+    void sov_process_io(const size_t & vpage_index_max);        // TODO: move
+
 public:
+    ClientsManager client_manager;
+
     SO_Manager(void);
     ~SO_Manager(void);
-
+    
     /*  Attempts creating a new service-order into the database. */
     bool new_order(const char issue[SO_DESCRIPTION_SIZE], const client_id_t & client_id,
         struct ServiceOrder * return_so);
-
+    
     /*  Attempts budgeting an open service-order in the database. */
     bool budget_order(const so_id_t id, const struct PartsBudget & parts_budget, struct ServiceOrder * return_so);
 
@@ -116,8 +137,30 @@ public:
     /*  Attempts getting an existing service-order on the database.
         Returns success, failing in case of an invalid ID or, generally, IO issues. */
     bool get_order(id_t id, struct ServiceOrder * return_so) const;
-
+    
+    /*  Lists all SOs in the database that fits a certain stage category. */
     std::list<struct ServiceOrder> so_category(SERVICE_ORDER_STAGE category);
+
+
+    /*  TODO: move stuff to so_vizualizer. */
+    void so_vizualizer(void);
+    void so_category_vizualizer(SERVICE_ORDER_STAGE category);
+
+    friend class SO_Vizualizer;
+};
+
+
+/*  TODO: Complete... */
+class SO_Vizualizer {
+private:
+    class SO_Manager * so_manager;
+
+protected:
+
+
+public:
+    SO_Vizualizer(SO_Manager * so_manager);
+    void sov_menu(void);
 };
 
 

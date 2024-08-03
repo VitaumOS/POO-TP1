@@ -51,7 +51,8 @@ typedef struct _Date {
 
 std::ostream & operator<<(std::ostream & stream, const struct _Date & the_date);
 
-bool get_date(Date & the_date);
+void get_date_e(struct _Date & the_date);
+bool get_date(struct _Date & the_date);
 void fprint_date(FILE * const _PrintStream, const Date & the_date);
 
 

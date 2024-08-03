@@ -13,7 +13,11 @@
 #define _LOGIN_HEADER_
 
 
-#include "ui.h"
+#include "ui.hpp"
+#include "../users/user.hpp"
+
+
+#define LOGIN false
 
 
 // The steps there will be at login screen.
@@ -24,6 +28,29 @@ typedef enum {
     LS_REPEATING_PASSWORD,
     LS_LOGGED
 } LOGIN_STEPS;
+
+    
+#if LOGIN
+
+class Login {
+
+    User * user;
+    bool main_loop;
+    bool login_loop;
+
+private:
+    Login(void) {
+
+    }
+
+    virtual ~Login(void) {
+
+    }
+
+    void LoginMenu(void);
+    bool InputUserPass();
+};
+
 
 
 class LoginScreen : public Screen {
@@ -52,6 +79,7 @@ public:
     void capture_username(void);
     void capture_password(void);
 };
+#endif 
 
 
 #endif // _LOGIN_HEADER_
