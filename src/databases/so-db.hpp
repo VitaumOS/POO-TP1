@@ -107,7 +107,8 @@ private:
     size_t print_lpage(std::list<struct ServiceOrder> & the_list,
         size_t lpage_index, size_t focus_index) const;          // TODO: move
     void so_inspect(so_id_t id);                                // TODO: move
-    void sov_render_header(void)    const;                      // TODO: move
+    void sov_render_header(
+        SERVICE_ORDER_STAGE category = SO_ALL) const;           // TODO: move
     void sov_render_footer(void)    const;                      // TODO: move
     void sov_process_io(const size_t & vpage_index_max);        // TODO: move
 

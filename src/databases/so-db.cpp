@@ -416,20 +416,19 @@ inline void SO_Manager::repr_el(const struct ServiceOrder & _SO) const {
 	default:				fprintf(stdout, "%-4s", "UNKW"); break;
 	}
 
-	// Date
-	fprintf(stdout, " + "); // _SO.id
+	fprintf(stdout, "\t[%06llu:%02d]\t",
+		_SO.client_id.person_id, _SO.client_id.vehicle_id);
+
+	fprintf(stdout, "R$%05.2lf R$%06.2lf",
+		((double) _SO.hardware_price) / ((double) 100.0), ((double) _SO.labor_price) / ((double) 100.0));
+
+
+	// Dates
+	fprintf(stdout, "\t+ ");
 	fprint_date(stdout, _SO.creation_date);
 	fprintf(stdout, "\t* ");
 	fprint_date(stdout, _SO.update_date);
-	fprintf(stdout, " | ");
-
-	fprintf(stdout, "[%06llu:%02d], ",
-		_SO.client_id.person_id, _SO.client_id.vehicle_id);
-
-	fprintf(stdout, "hardware=R$%05.2lf, labor=R$%06.2lf",
-		((double) _SO.hardware_price) / ((double) 100.0), ((double) _SO.labor_price) / ((double) 100.0));
-
-	fprintf(stdout, " [%-16s]", _SO.issue_description);
+	fprintf(stdout, "\t");
 }
 
 
@@ -548,14 +547,25 @@ size_t SO_Manager::print_lpage(std::list<struct ServiceOrder> & the_list,
 	return the_list.size() - index;
 }
 
-void SO_Manager::sov_render_header(void) const 
+void SO_Manager::sov_render_header(SERVICE_ORDER_STAGE category) const 
 {
-	constexpr const char * menu_title = "SO vizualizer";
-	constexpr size_t title_length = literal_string_length(menu_title);
+	constexpr const char * menu_base_title = "SO vizualizer: ";
+	constexpr size_t title_length = literal_string_length(menu_base_title);
 
 	print_n_char('=', 50); putchar('\n');
 
-	printf("%s\n", menu_title);
+	printf("%s ", menu_base_title);
+	switch (category) {
+	case SO_OPEN:				printf("Open SOs\n");							break;
+	case SO_BUDGET:				printf("Budgeted SOs\n");						break;
+	case SO_MAINTENANCE:		printf("Maintenanced SOs\n");					break;
+	case SO_CLOSED:				printf("Closed SOs (by maintenance)\n");		break;			
+	case SO_CANCELED:			printf("Canceled SOs (closed after open)\n");	break;				
+	case SO_CLOSED_BUDGET:		printf("Closed SOs after being budgeted\n");	break;				
+	case SO_ALL:				printf("All SOs\n");							break;
+	default:					printf("UNKOWN\n");								break;
+	}
+
 	print_n_char('*', title_length - 1); putchar('\n');
 
 	fflush(stdout);
@@ -693,13 +703,13 @@ void SO_Manager::so_category_vizualizer(SERVICE_ORDER_STAGE category)
 	while (running_menu) {
 		/*	Rendering: header */
 		clean_screen();
-		SO_Manager::sov_render_header();
+		SO_Manager::sov_render_header(category);
 
 		/*	Rendering: body */
 		print_n_char('\n', 2);
 
 		printf("Page: #%03llu\n", vpage_index);
-		fprintf(stdout, "SO-ID\tSTATE\t\tCREATION DATE\tUPDATE DATE\t\n");
+		fprintf(stdout, "SO-ID\tSTATE\tCLIENT-ID\tHRD\t LBR\t\tCREATION DATE\t\tUPDATE DATE\t\n");
 		vpage_item_qtt = SO_Manager::print_lpage(SOs, vpage_index, focus_index);
 
 		/*	Rendering: footer */
