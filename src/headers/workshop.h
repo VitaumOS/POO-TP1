@@ -19,7 +19,9 @@
 #endif // defined(__cplusplus)
 
 // Login
-#include "login.h"
+#if defined(__cplusplus)
+#	include "../ui/login.hpp"
+#endif // define(__cplusplus)
 
 // Users
 #if defined(__cplusplus)

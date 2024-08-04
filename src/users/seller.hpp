@@ -35,8 +35,8 @@ private:
 
     enum REGISTERCLIENT register_client_menu();
     bool GenerateSO();
-    bool ApproveOrders();
-    bool CloseOrders();
+    bool approve_menu();
+    bool close_menu();
 
 public:
     Seller(id_t id, SO_Manager * so_manager);

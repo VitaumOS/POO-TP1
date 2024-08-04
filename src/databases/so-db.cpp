@@ -7,7 +7,7 @@
 
 #include "so-db.hpp"
 #include <string.h>	// for strcpy, strcmp
-#include "../headers/ui.hpp"
+#include "../ui/ui.hpp"
 #include <stdexcept>
 #include <assert.h>
 #include <iterator>
@@ -431,21 +431,6 @@ inline void SO_Manager::repr_el(const struct ServiceOrder & _SO) const {
 	fprintf(stdout, "\t");
 }
 
-
-
-
-static constexpr size_t literal_string_length(const char * _String)
-{
-	size_t iterator = 0;
-	while (_String[iterator ++]);
-	return iterator;
-}
-
-static inline void print_n_char(char c, size_t n) {
-	while (n --)
-		putchar(c);
-}
-
 /*
 22, 12, 40
 239, 203, 104
@@ -470,8 +455,8 @@ size_t SO_Manager::print_vpage(size_t vpage_index, size_t focus_index)
 	{
 		if (iterator == focus_index)
 		{
-			aec_bg_rgb(0, 4, 17);
-			aec_fg_rgb(174, 183, 179);
+			aec_bg_rgb(239, 203, 104);
+			aec_fg_rgb(22, 12, 40);
 			fprintf(stdout, "[%03llu] ", index + iterator);
 			fprint_element(stdout, &so_buffer[iterator]);
 			aec_reset();
@@ -513,8 +498,8 @@ size_t SO_Manager::print_lpage(std::list<struct ServiceOrder> & the_list,
 		{
 			so = static_cast<struct ServiceOrder> (* list_ptr);
 
-			aec_bg_rgb(0, 4, 17);
-			aec_fg_rgb(174, 183, 179);
+			aec_bg_rgb(239, 203, 104);
+			aec_fg_rgb(22, 12, 40);
 			fprintf(stdout, "[%03llu]\t", so.id);
 
 			SO_Manager::repr_el(so);

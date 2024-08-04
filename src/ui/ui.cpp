@@ -4,23 +4,26 @@
 
 
 #include <iostream>
-#include "headers/ui.hpp"
+#include "ui.hpp"
 
-/*
+
 Screen::Screen(void) : 
 	width(100), height(100), 
 	bg((rgb) { 10, 10, 10 }),
-	fg((rgb) { 10, 10, 10 })
+	fg((rgb) { 175, 175, 175 })
 {
 
 }
 
 Screen::Screen(int width, int height, rgb bg, rgb fg) : 
-	width(width), height(height),
-	bg(bg), fg(fg)
+	width(width), height(height), bg(bg), fg(fg)
 {
 	
-	std::cout << "[Screen constructor]\n";
+}
+
+Screen::~Screen(void)
+{
+
 }
 
 void Screen::fill_char(char c)
@@ -32,9 +35,10 @@ void Screen::fill_char(char c)
 		putchar('\n');
 	}
 }
-*/
+
 
 #define in_range(a, b, x)   (((x) >= (a)) && ((b) >= (x)))
+
 static inline int64_t to_numeral(const std::string _StringBuffer) {
 	size_t iterator = 0;
 	int64_t sum = 0;

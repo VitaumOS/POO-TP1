@@ -12,49 +12,27 @@ static int __main(void)
     //TODO: implementar as variáveis dentro da Class Login
     bool main_loop = true;  // Sinalizes the running of the application.
 
-    SO_Manager so_manager;
-    Users_DB user_db(&so_manager);
-    if (! user_db.could_initialize())
+    class SO_Manager so_manager;
+    class Users_DB users_db(&so_manager);
+    if (! users_db.could_initialize())
         return -1;
     
+    class LoginScreen login_screen(&users_db);
+    class User * user = nullptr;
+
     while (main_loop)
     {   
-        bool login_loop = true;
-        std::string username_buffer;
-        std::string password_buffer;
+        user = login_screen.menu();
 
-        class User * user = nullptr;
-
-        // LOGGANDO COM O CARA CMRD
-        while (login_loop) 
+        if (user != nullptr)
         {
-            if (! (std::cin >> username_buffer >> password_buffer)) {
-                continue;
-            }
-
-            /*
-            cout << "Username input: " << username_buffer << endl;
-            cout << "Password input: " << password_buffer << " para fins didáticos ;)  " << endl;
-            */
-
-            if (! user_db.login(username_buffer.c_str(), password_buffer.c_str(), &user))
-            {
-                std::cout << "VTMNC DIGITA O TREM CERTO" << std::endl;
-                continue;
-            }
-
-            login_loop = false; // TODO: definir como atributo
+            user->interact();
         }
 
-        std::cout << "Logged KRL" << std::endl;
-        
-        
-        // REDIRECIONA PRO CMRD CERTO
-        // * loop de cada camarada
-        user->interact();
-        break;
+        std::cout << "Deseja encerrar a aplicação? ";
+        if (input_verification())   main_loop = false;
     }
-        
+    
     return 0;
 }
 

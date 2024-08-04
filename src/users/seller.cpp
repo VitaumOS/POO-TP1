@@ -3,7 +3,9 @@
 */
 
 #include "seller.hpp"
-#include "../headers/ui.hpp"
+#include "../ui/ui.hpp"
+#include "../ui/seller-ui.hpp"
+
 
 #define ACTIVE_SELLER true
 #if ACTIVE_SELLER
@@ -138,16 +140,25 @@ bool Seller::LoadClient(void) {
     return true;
 }
 
-bool Seller::ApproveOrders(void) {
-    if (! so_manager->operate_order(so_buffer.id, &so_buffer))
-        return false;
+bool Seller::approve_menu(void) {
+    SO_ApprovalMenu approval_menu(so_manager);
+                                    
+    if (approval_menu.interact() >= 0)
+    {
+        so_id_t the_id = approval_menu.get_id();
+    }
+
     return true; 
 }
 
-bool Seller::CloseOrders(void) {
-    if(! so_manager->close_order(so_buffer.id, & so_buffer)) {
-        return false;
+bool Seller::close_menu(void) {
+    SO_ClosingMenu closing_menu(so_manager);
+
+    if (closing_menu.interact() >= 0)
+    {
+        
     }
+
     return true; 
 }
 
@@ -198,25 +209,26 @@ void Seller::interact(void) {
             break;
 
         case 3:
-
             budget_orders = so_manager->so_category(SO_BUDGET);
             for (struct ServiceOrder order : budget_orders)
             {
                 printf("SO: #%llu\n", order.id);
             }
 
-            so_manager->print_database_filtered([](const struct ServiceOrder & so) { return so.stage == SO_BUDGET; });
-            // so_manager->so_vizualizer();
-            so_manager->so_category_vizualizer(SO_BUDGET);
-            // TODO: terminar menu
-            // if (! ApproveOrders()) cerr << "Burro3!!!" << endl;
+            cout << "Gostaria de entrar no menu de navegações de SOs? ";
+            if (input_verification())
+            {
+                so_manager->so_category_vizualizer(SO_BUDGET);
+            }
+
+            if (! approve_menu())
+                cerr << "Erro ao aprovar ordem" << endl;
             break;
 
         case 4:
 
-
-            // TODO: terminar menu
-            // if (! CloseOrders())    cerr << "Burro4!!!" << endl;
+            if (! close_menu())    
+                cerr << "Burro4!!!" << endl;
             break;
 
         default: 
@@ -235,6 +247,6 @@ void Seller::display_interaction_guide(void) const {
     cout << "1\t->\tRegistrar um cliente;" << endl;
     cout << "2\t->\tGerar uma Ordem de Serviço;" << endl;
     cout << "3\t->\tAprovar uma Ordem de Serviço;" << endl;
-    cout << "4\t->\tFechar uma Ordem de Serviço." << endl;
+    cout << "4\t->\tConcluir uma Ordem de Serviço." << endl;
     fflush(stdout);
 }

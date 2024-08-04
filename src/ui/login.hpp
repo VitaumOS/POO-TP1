@@ -1,12 +1,6 @@
 /*	<src/headers/login.h>
 
-	@VitaumOS */
-
-/*  Let it be a template... (Adapt whatever you feel the need for,
-    as it was just a necessary testing example... 
-    
-    Here's a design choice: decide whether do you want to organize all the system
-    into the screen object itself or as a separate thing... */
+    Where the definition of the login menu is given. */
 
 
 #ifndef _LOGIN_HEADER_
@@ -14,10 +8,8 @@
 
 
 #include "ui.hpp"
+#include "../databases/users-db.hpp"
 #include "../users/user.hpp"
-
-
-#define LOGIN false
 
 
 // The steps there will be at login screen.
@@ -29,30 +21,29 @@ typedef enum {
     LS_LOGGED
 } LOGIN_STEPS;
 
-    
-#if LOGIN
 
-class Login {
-
-    User * user;
-    bool main_loop;
-    bool login_loop;
-
+class LoginScreen : virtual public Screen {
 private:
-    Login(void) {
+    class User * user_buffer = nullptr;
+    class Users_DB * users_db;
 
-    }
+    std::string username_buffer;
+    std::string password_buffer;
 
-    virtual ~Login(void) {
+    bool login_loop = true;
 
-    }
+    bool input_credentials(void);
+    int render(void);
 
-    void LoginMenu(void);
-    bool InputUserPass();
+public:
+    LoginScreen(Users_DB * users_db);
+    virtual ~LoginScreen(void);
+
+    class User * menu(void);
 };
 
 
-
+#if 0
 class LoginScreen : public Screen {
 private:
     int state = LS_NOTHING; // Tells in which state of processing is the login screen interaction.
@@ -79,7 +70,6 @@ public:
     void capture_username(void);
     void capture_password(void);
 };
-#endif 
-
+#endif
 
 #endif // _LOGIN_HEADER_

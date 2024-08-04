@@ -57,14 +57,16 @@ typedef enum {
 #define print_c_string(_String)	(fputs(_String, stdout) > 0)
 
 
-/*
+/*	*/
 class Screen {
+private:
+
 protected:
 	int width, height;
 	rgb bg, fg;
-
-	void set_bg(void)	const	{ aec_bg_rgb(bg.r, bg.g, bg.b); }
-	void set_fg(void)	const	{ aec_fg_rgb(fg.r, fg.g, fg.b); }
+	
+	void set_bg(void)	const { aec_bg_rgb(bg.r, bg.g, bg.b); }
+	void set_fg(void)	const { aec_fg_rgb(fg.r, fg.g, fg.b); }
 
 	void fill_char(char c);
 	
@@ -77,7 +79,6 @@ protected:
 		aec_crs_down(height); 
 	}
 
-public:
 	// Moves the cursor to the absolute position (x, y) on the screen.
 	bool go_to_abs(int x, int y) const {
 		if ((x < 0) || (y < 0) || (x > width) || (y > height))
@@ -96,18 +97,6 @@ public:
 		if ((pos > 8) || (pos < 0))
 			return false;
 		
-			TOP_LEFT,
-			MID_LEFT,
-			BOT_LEFT,
-
-			TOP_CENTER,
-			CENTER,
-			BOT_CENTER,
-
-			TOP_RIGHT,
-			MID_RIGHT,
-			BOT_RIGHT,
-
 		aec_beginning();
 		
 		const int x_index = pos / 3;
@@ -145,46 +134,31 @@ public:
 			&& print_c_string(_String);
 	}
 
-	public:
-	Screen(void);
-	Screen(int width, int height, rgb bg, rgb fg);
-	virtual void render() {
+	virtual int render(void) {
 		aec_clean();
-		printf("\n\t\tBLANK SCREEN\n\n\n");
-	};
-	
-	virtual int interact(void) {
-		printf("vtmnc VS\n");
+		printf("\n\t\tBLANK UNDEFINED SCREEN\n\n\n");
 		return -1;
-	};
-};
+	}
 
-class Label {
-private:
+	// virtual int process_events(void) { return -1; }
 
 public:
-	int x, y;
-	std::string label_str;
+	Screen(void);
+	Screen(int width, int height, rgb bg, rgb fg);
+	virtual ~Screen(void);
 
-	Label(void)
-	{
-		x = 0;  y = 0;
-		label_str = "";
-	}
+	virtual int interact(void) { return -1; }
 
-	Label(int x, int y, std::string str) {
-		this->x = x;
-		this->y = y;
-		this->label_str = str;
-	}
-
-	bool render_at_screen(const Screen * _Screen)
-	{
-		return _Screen->go_to_abs(x, y) && print_c_string(label_str.c_str());
-	}
 };
-*/
 
+constexpr size_t literal_string_length(const char * _String)
+{
+	size_t iterator = 0;
+	while (_String[iterator ++]);
+	return iterator;
+}
+
+inline void print_n_char(char c, size_t n) {	while (n --) putchar(c); }
 
 bool input_verification(void);
 int64_t input_numeral(void);
