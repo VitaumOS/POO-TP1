@@ -3,7 +3,6 @@
 */
 
 #include "seller.hpp"
-#include "../ui/ui.hpp"
 #include "../ui/seller-ui.hpp"
 
 
@@ -12,6 +11,7 @@
 
 
 #include <iostream>
+#include <list>
 #include <string>
 #include <string.h>
 
@@ -20,7 +20,7 @@ using namespace std;
 
 
 
-Seller::Seller(id_t id, SO_Manager * so_manager) : User(id, so_manager)
+Seller::Seller(Id_t id, SO_Manager * so_manager) : User(id, so_manager), so_vizualizer(so_manager)
 {
     client_is_loaded = false;
     so_is_loaded = 0;
@@ -84,7 +84,7 @@ enum REGISTERCLIENT Seller::register_client_menu(void) {
     return REGISTERCLIENT_SUCCESS;
 }
 
-bool Seller::GenerateSO(void) {
+bool Seller::generate_so_menu(void) {
     if ((! client_is_loaded) && (! Seller::LoadClient())) {
         cout << "Não foi possível carregar o cliente.\n";
         return false;
@@ -140,38 +140,34 @@ bool Seller::LoadClient(void) {
     return true;
 }
 
-bool Seller::approve_menu(void) {
+void Seller::approve_menu(void) {
     SO_ApprovalMenu approval_menu(so_manager);
                                     
     if (approval_menu.interact() >= 0)
     {
         so_id_t the_id = approval_menu.get_id();
     }
-
-    return true; 
 }
 
-bool Seller::close_menu(void) {
+void Seller::close_menu(void) {
     SO_ClosingMenu closing_menu(so_manager);
 
     if (closing_menu.interact() >= 0)
     {
         
     }
-
-    return true; 
 }
 
-#include <list>
 
 void Seller::interact(void) {
     
     size_t opcao = 0;
     bool looping = true;
     
+
     while (looping) 
     {
-        display_interaction_guide();
+        Seller::display_interaction_guide();
 
         // When the input by <cin> fails it is default at 0.
         cin >> opcao;
@@ -203,36 +199,45 @@ void Seller::interact(void) {
             break;
 
         case 2: // Generating a new SO
-            if (! GenerateSO()) {
+            if (! generate_so_menu()) {
                 cout << "Não foi possível gerar uma nova SO." << endl;
             }
             break;
 
         case 3:
             budget_orders = so_manager->so_category(SO_BUDGET);
+            
+            /* Debugging the orders IDs took in the list filtering...
             for (struct ServiceOrder order : budget_orders)
             {
                 printf("SO: #%llu\n", order.id);
             }
+            */
 
-            cout << "Gostaria de entrar no menu de navegações de SOs? ";
+            cout << "Gostaria de entrar no menu de navegações de SOs orçamentadas antes? ";
             if (input_verification())
             {
-                so_manager->so_category_vizualizer(SO_BUDGET);
+                so_vizualizer.set_category(SO_BUDGET);
+                so_vizualizer.interact();
             }
 
-            if (! approve_menu())
-                cerr << "Erro ao aprovar ordem" << endl;
+            Seller::approve_menu();
             break;
 
         case 4:
 
-            if (! close_menu())    
-                cerr << "Burro4!!!" << endl;
+            cout << "Gostaria de entrar no menu de navegações de SOs antes? ";
+            if (input_verification())
+            {
+                so_vizualizer.set_category(SO_ALL);
+                so_vizualizer.interact();
+            }
+
+            Seller::close_menu();
             break;
 
         default: 
-            cerr << "Burro5!!!" << endl;
+            cerr << "Erro inesperado #5" << endl;
             break;
         }
     }

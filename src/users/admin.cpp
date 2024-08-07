@@ -5,13 +5,15 @@
 #include <string>
 
 //Construtor do Admnistrador
-Administrator::Administrator(id_t id, SO_Manager * so_manager, Users_DB * users_db) 
-    : User(id, so_manager), users_db(users_db) { 
-    cout << "ADM+" << endl;    
+Administrator::Administrator(Id_t id, SO_Manager * so_manager, Users_DB * users_db) 
+    : User(id, so_manager), users_db(users_db) {
+
 }
 
 // Destrutor do Admnistrador
-Administrator::~Administrator(void){}
+Administrator::~Administrator(void) {
+
+}
 
 //Função que registra um novo vendedor. Retorna true se conseguir e falso caso contrário
 bool Administrator::Register_Data_Seller(username_string_t username,
@@ -40,19 +42,25 @@ bool Administrator::Update_Data_Seller(username_string_t username,
 
 
 // Função que define o menu para a criação/alteração do vendedor pelo Admnistrador
-void Administrator::SellerMenu(void) { 
-#if 0    
-    int option;
-    do{
+void Administrator::edit_seller(void) { 
+    int option = 0;
+#if 0
+    username_string_t username[username_string_length];
+    password_string_t password[password_string_length];
+
+    bool running_menu = true;
+    while (running_menu)
+    {
         cout << "Qual alteração você deseja fazer?"<<endl;
         cout << "0\t->\tCriar Novo Vendedor;" << endl;
         cout << "1\t->\tEditar Vendedor Existente;" << endl;
         cout << "2\t->\tVoltar;" << endl;
 
-        cin>>option;
+        cin >> option;
+        cin.clear();
+        cin.ignore(INT64_T_MAX, '\n');
 
-        username_string_t username[username_string_length];
-        password_string_t password[password_string_length];
+        
 
         switch(option){
             case 0:
@@ -82,8 +90,7 @@ void Administrator::SellerMenu(void) {
                 cout <<"Valor inválido!"<<endl;
             break;
         }
-    }while(option!=2);
-    // int64_t fetch_username(const username_string_t username, struct UserData * const return_data);
+    }
 #endif
 }
 
@@ -114,7 +121,7 @@ bool Administrator::Update_Data_Mechanic(username_string_t username,
         
 }
 
-void Administrator::MechanicMenu(void) { // Função que define o menu para a criação/alteração do mecânico pelo Admnistrador
+void Administrator::edit_mechanic(void) { // Função que define o menu para a criação/alteração do mecânico pelo Admnistrador
 #if 0    
     int option;
     do{
@@ -160,7 +167,6 @@ void Administrator::MechanicMenu(void) { // Função que define o menu para a cria
 #endif
 }
 
-
 bool Administrator::Register_New_Admin(username_string_t username, password_string_t password) {
 
     if (!users_db->register_user(USER_TYPE_ADM, username, password))
@@ -169,7 +175,7 @@ bool Administrator::Register_New_Admin(username_string_t username, password_stri
     
 }
 
-void Administrator::AdminMenu(void){
+void Administrator::edit_admin(void){
 
     username_string_t username;
     password_string_t password;
@@ -182,33 +188,55 @@ void Administrator::AdminMenu(void){
         cout  << "Administrador criado com sucesso!"<<endl;
 }
 
-//Menu do Administrador
+// Menu geral do administrador
 void Administrator::interact(void) { 
-    int option;
-    do {
-            
-        cout << "Qual alteração você deseja fazer?"<<endl;
-        cout << "0\t->\tEditar dados de Vendedores;" << endl;
-        cout << "1\t->\tEditar dados de Mecânicos;" << endl;
-        cout << "2\t->\tCriar novo Administrador;" << endl;
-        cout << "3\t->\tSair;" << endl;
-            
+    int option = -1;
+    
+    bool running_menu = true;
+    while (running_menu) {
+        cout << "O que desejas fazer?" << endl;
+        cout << "0\t->\tSair;" << endl;
+        cout << "1\t->\tGerenciar Vendedores;" << endl;
+        cout << "2\t->\tGerenciar Mecânicos;" << endl;
+        cout << "3\t->\tGerenciar Administradores;" << endl;
+        cout << "4\t->\tGerenciar usuários" << endl;
+        
         cin >> option;
+        cin.clear();
+        cin.ignore(INT64_T_MAX, '\n');
 
-        switch(option){ // seller_origin, edit_seller <- arg solto
-            case EDIT_SLR: SellerMenu();              break;
+        switch (option) {
+        /*  Exit */
+        case 0: 
+            running_menu = false;
+            break;
+        
+        case 1:
+            Administrator::edit_seller();
+            break;
 
-            case EDIT_MCH: MechanicMenu();            break;
+        case 2: 
+            Administrator::edit_mechanic();            
+            break;
 
-            case EDIT_ADMIN: 
-                // Register_New_Admin();    
-                break;
+        case 3:
+            Administrator::edit_admin();
+            break;
 
-            case EXIT_ADM_OPTIONS: return;            break;
-
-            default: cout<<"aaaa vou me matar"<<endl; break;
+        case 4:
+            Administrator::edit_users();
+            break;
+            
+        default:
+            /*  Invalid input... */
+            break;
         }
-    } while (option != EXIT_ADM_OPTIONS);
+    }
 }
 
+void Administrator::edit_users(void)
+{
+
+
+}
 

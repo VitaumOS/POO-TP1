@@ -28,7 +28,7 @@ constexpr int64_t INT64_T_MAX	= 9223372036854775807LL;
 typedef const char * c_filepath;
 
 // A type representing generically an ID.
-typedef uint64_t id_t;
+typedef uint64_t Id_t;
 
 
 /*	The Currency *

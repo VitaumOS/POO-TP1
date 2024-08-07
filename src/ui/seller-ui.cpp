@@ -6,9 +6,13 @@
 #include <stdexcept>
 
 
-SO_MenuScreen::SO_MenuScreen(class SO_Manager * const so_manager) : Screen(), so_manager(so_manager) {
+SO_MenuScreen::SO_MenuScreen(class SO_Manager * const so_manager) : MenuScreen(), so_manager(so_manager) {
     if (so_manager == nullptr)
         throw std::runtime_error("VTMNC\n");
+}
+
+SO_MenuScreen::~SO_MenuScreen(void)
+{
 
 }
 
@@ -16,18 +20,22 @@ SO_ApprovalMenu::SO_ApprovalMenu(class SO_Manager * const so_manager) : SO_MenuS
 
 }
 
+SO_ApprovalMenu::~SO_ApprovalMenu(void)
+{
+
+}
+
 int SO_ApprovalMenu::render(void)
 {
     clean_screen();
-        
-    constexpr const char * menu_base_title = "Menu de Aprovações";
+    
+    constexpr const char * menu_base_title = "Menu de aprovações de ordens";
     constexpr size_t title_length = literal_string_length(menu_base_title);
 
     print_n_char('=', 50); putchar('\n');
     printf("%s\n", menu_base_title);
     print_n_char('*', title_length - 1); putchar('\n');
     print_n_char('\n', 5);
-
 
     std::cout << "*: " << output_buffer;
     print_n_char('\n', 5);
@@ -48,8 +56,10 @@ void SO_ApprovalMenu::interact_so(void)
         if (input_so_id < 0)
         {
             std::cout << "Entrada inválida. Deseja inserir novamente? ";
-            if (! input_verification())
+            if (! input_verification()) {
+                menu_loop = false; // <- for correctness...
                 break;
+            }
 
             std::cerr << "VTMNC VIADO" << std::endl;
             continue;
@@ -63,6 +73,8 @@ void SO_ApprovalMenu::interact_so(void)
                 static_cast<unsigned long long> (SO_ApprovalMenu::id) << "\". Tente novamente ou dê o bumbum." << std::endl;
         }
         
+        std::cout << "After get_order..." << std::endl;
+
         // SO_BUDGET
         if (SO_ApprovalMenu::so_buffer.stage != SO_BUDGET)
         {
@@ -124,6 +136,72 @@ int SO_ApprovalMenu::interact(void)
         {
         case 'i':   
             SO_ApprovalMenu::interact_so();
+            break;
+
+        case 'q':
+            menu_loop = false;
+            break;
+
+        default: continue;
+        }
+    }
+
+    return 0;
+}
+
+SO_ClosingMenu::SO_ClosingMenu(class SO_Manager * const so_manager) : SO_MenuScreen(so_manager)
+{
+
+
+}
+
+SO_ClosingMenu::~SO_ClosingMenu(void)
+{
+
+}
+
+int SO_ClosingMenu::render(void)
+{
+    clean_screen();
+
+    constexpr const char * menu_base_title = "Menu de conclusão de ordens";
+    constexpr size_t title_length = literal_string_length(menu_base_title);
+
+    print_n_char('=', 50); putchar('\n');
+    printf("%s\n", menu_base_title);
+    print_n_char('*', title_length - 1); putchar('\n');
+    print_n_char('\n', 5);
+
+
+    std::cout << "*: " << output_buffer;
+    print_n_char('\n', 5);
+
+    return 0;
+}
+
+int SO_ClosingMenu::interact(void)
+{
+    char command_buffer;
+
+    char temp_bf;
+
+    bool menu_loop = true;
+    while (menu_loop) {
+        /*  Rendering the screen... */
+        SO_ClosingMenu::render();
+        output_buffer.clear();
+
+        /*  Inputting the command. */
+        std::cout << "[i] para entrar com a ordem [q] para sair\n";
+        std::cin >> command_buffer;
+        std::cin.clear();
+        std::cin.ignore(INT64_MAX, '\n');
+
+        switch (command_buffer)
+        {
+        case 'i':
+            std::cout << "temporarily blank; not yet implemented... (PRESS ANYTHING TO CONTINUE)" << std::endl;
+            std::cin >> temp_bf;
             break;
 
         case 'q':

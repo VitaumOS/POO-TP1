@@ -11,6 +11,7 @@
 
 
 #include "../databases/so-db.hpp"
+#include "../ui/so-vizualizer.hpp"
 #include "user.hpp"
 
 
@@ -29,17 +30,19 @@ private:
     struct Client client_buffer;
     struct ServiceOrder so_buffer;
 
+    class SO_Vizualizer so_vizualizer;
+
     bool LoadClient(void);
 
     void display_interaction_guide(void) const;
 
     enum REGISTERCLIENT register_client_menu();
-    bool GenerateSO();
-    bool approve_menu();
-    bool close_menu();
+    bool generate_so_menu();
+    void approve_menu();
+    void close_menu(void);
 
 public:
-    Seller(id_t id, SO_Manager * so_manager);
+    Seller(Id_t id, SO_Manager * so_manager);
     virtual ~Seller(void);
 
     void interact(void);

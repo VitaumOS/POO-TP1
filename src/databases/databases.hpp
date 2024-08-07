@@ -66,7 +66,7 @@ protected:
     /*  Stream-header attributes : keeps overall information of the stream. 
         As child classes derives from this one, other information shall be aggregated
         with the standard "item_qtt". stream_header_size shall be updated accordingly. */
-    id_t item_qtt;  // How many items does is the database holding.
+    Id_t item_qtt;  // How many items does is the database holding.
 
     // Tracks the size of the class stream header, in bytes.
     // Constant once the object is initialized.
@@ -88,7 +88,7 @@ protected:
         The element is specified by its index; the element is written by reference.
         Returns success; fails in case of IO sequencing. In case of fail, the stream
         pointer state is undeterminated. */
-	inline bool read_element(id_t index, ElementType * const _DstItem) const {
+	inline bool read_element(Id_t index, ElementType * const _DstItem) const {
         return (fseek(stream, stream_header_size + index * sizeof(ElementType), SEEK_SET) == 0) && 
             (fread(_DstItem, sizeof(ElementType), 1, stream) > 0);
     }
@@ -97,12 +97,12 @@ protected:
         The element is specified by its index; the element is written by reference.
         Returns success; fails in case of IO sequencing. In case of fail, the stream
         pointer state is undeterminated. */
-    inline bool write_element(id_t index, const ElementType * const _SrcItem) const {
+    inline bool write_element(Id_t index, const ElementType * const _SrcItem) const {
         return (fseek(stream, stream_header_size + index * sizeof(ElementType), SEEK_SET) == 0) &&
             (fwrite(_SrcItem, sizeof(ElementType), 1, stream) > 0);
     }
 
-	inline size_t read_elements(id_t from_index, size_t n, ElementType * const _DstBuffer) const {
+	inline size_t read_elements(Id_t from_index, size_t n, ElementType * const _DstBuffer) const {
 		if (fseek(stream, stream_header_size + from_index * sizeof(ElementType), SEEK_SET) != 0)
 			return 0;
 		return fread(_DstBuffer, sizeof(ElementType), n, stream);
@@ -199,7 +199,7 @@ Database<ElementType>::~Database(void) {
 template <typename ElementType>
 bool Database<ElementType>::retrieve_stream_header(void) {
 	struct {
-		id_t item_qtt = 0;
+		Id_t item_qtt = 0;
 	} _stream_header;
 
 	rewind(stream);
@@ -213,7 +213,7 @@ bool Database<ElementType>::retrieve_stream_header(void) {
 template <typename ElementType>
 bool Database<ElementType>::update_stream_header(void) const {
 	struct {
-		id_t item_qtt = 0;
+		Id_t item_qtt = 0;
 	} _stream_header;
 	_stream_header.item_qtt = item_qtt;
 

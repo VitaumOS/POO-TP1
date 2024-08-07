@@ -12,7 +12,7 @@
 #include "clients-db.hpp"
 
 
-typedef id_t so_id_t;
+typedef Id_t so_id_t;
 
 /*	The string-size a SO's description have. */
 constexpr uint64_t SO_DESCRIPTION_SIZE = 64ULL;
@@ -40,7 +40,7 @@ typedef enum _SOS {
     SO_ALL,
 } SERVICE_ORDER_STAGE;
 
-typedef id_t so_id_t;
+typedef Id_t so_id_t;
 
 /*  Represents a service-order item. */
 struct ServiceOrder {
@@ -77,7 +77,7 @@ private:
     bool reset_database(void);
 
     /*  Stream-header */
-    id_t first_active; // The oldest active element in the database.
+    Id_t first_active; // The oldest active element in the database.
 
     inline void fprint_element(FILE * _OutputStream, const struct ServiceOrder * _SO) const;
 
@@ -94,23 +94,6 @@ private:
 
         return DEFAULT_LABOR_PRICE + ((currency_t) (LINEAR_COEFFICIENT * SO.hardware_price));
     }
-
-    /*  Vizualizer and representation inner methods. */
-    std::string cmd_input_buffer;                               // TODO: move
-    std::string cmd_output_buffer;                              // TODO: move
-    size_t vpage_index = 0;                                     // TODO: move         
-    size_t focus_index = 0;                                     // TODO: move
-    size_t vpage_item_qtt = 0;                                  // TODO: move
-    bool running_menu = true;                                   // TODO: move
-    void repr_el(const struct ServiceOrder & so) const;         // TODO: move
-    size_t print_vpage(size_t vpage_index, size_t focus_index); // TODO: move
-    size_t print_lpage(std::list<struct ServiceOrder> & the_list,
-        size_t lpage_index, size_t focus_index) const;          // TODO: move
-    void so_inspect(so_id_t id);                                // TODO: move
-    void sov_render_header(
-        SERVICE_ORDER_STAGE category = SO_ALL) const;           // TODO: move
-    void sov_render_footer(void)    const;                      // TODO: move
-    void sov_process_io(const size_t & vpage_index_max);        // TODO: move
 
 public:
     ClientsManager client_manager;
@@ -133,37 +116,17 @@ public:
 
     /*  Attempts advancing a service-oder to its next (natural) stage, in the database.
         It bases upon the the source SO to the updating. */
-    bool advance_order(id_t id, const struct ServiceOrder * src_so);
+    bool advance_order(Id_t id, const struct ServiceOrder * src_so);
 
     /*  Attempts getting an existing service-order on the database.
         Returns success, failing in case of an invalid ID or, generally, IO issues. */
-    bool get_order(id_t id, struct ServiceOrder * return_so) const;
+    bool get_order(Id_t id, struct ServiceOrder * return_so) const;
     
     /*  Lists all SOs in the database that fits a certain stage category. */
     std::list<struct ServiceOrder> so_category(SERVICE_ORDER_STAGE category);
 
-
-    /*  TODO: move stuff to so_vizualizer. */
-    void so_vizualizer(void);
-    void so_category_vizualizer(SERVICE_ORDER_STAGE category);
-
     friend class SO_Vizualizer;
 };
-
-
-/*  TODO: Complete... */
-class SO_Vizualizer {
-private:
-    class SO_Manager * so_manager;
-
-protected:
-
-
-public:
-    SO_Vizualizer(SO_Manager * so_manager);
-    void sov_menu(void);
-};
-
 
 std::ostream & operator<<(std::ostream & stream, const struct ServiceOrder & so);
 

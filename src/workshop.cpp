@@ -2,34 +2,32 @@
 
     The entry point for workshop the system. */
 
+
 #include <workshop.h>
 #include <string>
 
 
-
 static int __main(void)
 {   
-    //TODO: implementar as variáveis dentro da Class Login
-    bool main_loop = true;  // Sinalizes the running of the application.
 
     class SO_Manager so_manager;
-    class Users_DB users_db(&so_manager);
-    if (! users_db.could_initialize())
-        return -1;
-    
-    class LoginScreen login_screen(&users_db);
-    class User * user = nullptr;
+    if (! so_manager.could_initialize())    return -1;
 
+    class Users_DB users_db(&so_manager);
+    if (! users_db.could_initialize())      return -2;
+    
+    class LoginScreen login_screen(50, 25, &so_manager, &users_db);
+
+    bool main_loop = true;
     while (main_loop)
     {   
-        user = login_screen.menu();
-
-        if (user != nullptr)
+        if (login_screen.interact() > 0)
         {
-            user->interact();
+            login_screen.user_interact();
+            continue;
         }
 
-        std::cout << "Deseja encerrar a aplicação? ";
+        std::cout << "Deseja encerrar o programa? ";
         if (input_verification())   main_loop = false;
     }
     
@@ -39,7 +37,7 @@ static int __main(void)
 /*  (Program specs.) */
 int main(void) {
     /*  Language setup */
-    setlocale(LC_ALL,"portuguese");
+    setlocale(LC_ALL, "portuguese");
 
 #   define  TESTSOMENU                  false
 #   if      TESTSOMENU

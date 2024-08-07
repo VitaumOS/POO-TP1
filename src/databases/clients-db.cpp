@@ -11,8 +11,8 @@
 
 
 struct CM_stream_header {
-	id_t next_id = 0;
-	id_t item_qtt = 0;
+	Id_t next_id = 0;
+	Id_t item_qtt = 0;
 };
 
 
@@ -80,7 +80,7 @@ bool ClientsManager::update_stream_header(void) const {
 /*	Returns the index of first occurrence of the person's id on the database, from a given
 	starting index.
 	The return is (-1) in case of not founding; and (-2) in case of IO errors. */
-int64_t ClientsManager::fetch_person_id(id_t person_id, size_t _From) const {
+int64_t ClientsManager::fetch_person_id(Id_t person_id, size_t _From) const {
 	struct Client client_buffer;
 
 	size_t iterator = _From;
@@ -152,13 +152,13 @@ bool ClientsManager::get_client(const client_id_t & ID, struct Client * const re
 	if (index == -1)
 		return false;
 
-	return read_element((id_t) index, return_client);
+	return read_element((Id_t) index, return_client);
 }
 
 /*	Register a new client - with a person registered or yet not - on the database.
 	Returns success; in case of fail, the state of the database won't change. */
-bool ClientsManager::register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, struct Client * const return_client, id_t person_id) {
-	if (person_id == ((id_t) -1))
+bool ClientsManager::register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, struct Client * const return_client, Id_t person_id) {
+	if (person_id == ((Id_t) -1))
 		person_id = next_id;
 	
 	printf("[%s] person-id: %llu\n", __func__, person_id);

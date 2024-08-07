@@ -7,26 +7,34 @@
 #include "ui.hpp"
 
 
-Screen::Screen(void) : 
-	width(100), height(100), 
+MenuScreen::MenuScreen(void) : 
+	width(50), height(25), 
 	bg((rgb) { 10, 10, 10 }),
 	fg((rgb) { 175, 175, 175 })
 {
 
 }
 
-Screen::Screen(int width, int height, rgb bg, rgb fg) : 
+MenuScreen::MenuScreen(int width, int height) : 
+	width(width), height(height),
+	bg((rgb) { 10, 10, 10 }),
+	fg((rgb) { 175, 175, 175 })
+{
+
+}
+
+MenuScreen::MenuScreen(int width, int height, rgb bg, rgb fg) : 
 	width(width), height(height), bg(bg), fg(fg)
 {
 	
 }
 
-Screen::~Screen(void)
+MenuScreen::~MenuScreen(void)
 {
 
 }
 
-void Screen::fill_char(char c)
+void MenuScreen::fill_char(char c) const
 {
 	for (int i = 0; i < height; i ++)
 	{

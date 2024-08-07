@@ -6,19 +6,54 @@
 #include "login.hpp"
 #include <stdexcept>
 
+/*
+22, 12, 40
+239, 203, 104
+225, 239, 230
+174, 183, 179
+0, 4, 17
+*/
 
-LoginScreen::LoginScreen(class Users_DB * users_db) : Screen(), users_db(users_db)
+void LoginScreen::check_databases(void)
 {
+
+    if (so_manager == nullptr)
+        throw std::runtime_error("ASD");
+
+    if (! so_manager->could_initialize())
+        throw std::runtime_error("ASD2");
+
+    if (users_db == nullptr)
+        throw std::runtime_error("ASD3");
     if (! users_db->could_initialize())
-        throw std::runtime_error("VTMNC.");
+        throw std::runtime_error("Error initializing LoginScreen due to improper users database passing...");
+}
+
+LoginScreen::LoginScreen(class SO_Manager * const so_manager,  class Users_DB * const users_db) : 
+    MenuScreen(), so_manager(so_manager), users_db(users_db)
+{
+    LoginScreen::check_databases();
+}
+
+LoginScreen::LoginScreen(int w, int h, 
+    class SO_Manager * const so_manager, class Users_DB * const users_db) : 
+    MenuScreen(w, h), so_manager(so_manager), users_db(users_db)
+{
+    LoginScreen::check_databases();
+
+    MenuScreen::bg = (struct rgb) { 22, 12, 40 };
+    MenuScreen::fg = (struct rgb) {174, 183, 179};
 }
 
 LoginScreen::~LoginScreen(void)
 {
-    
+    if (user_buffer == nullptr)
+        return;
+    delete user_buffer;
+    user_buffer = nullptr;
 }
 
-bool LoginScreen::input_credentials(void) {
+bool LoginScreen::capture_credentials(void) {
     std::cout << "Nome de usuário:\t";
     if (! (std::cin >> username_buffer))
         return false;
@@ -27,9 +62,18 @@ bool LoginScreen::input_credentials(void) {
     if (! (std::cin >> password_buffer))
         return false;
     
-    if (! users_db->login(username_buffer.c_str(), password_buffer.c_str(), &user_buffer)) {
+    struct MinimalUserData return_user_data;
+    if (! users_db->login(username_buffer.c_str(), password_buffer.c_str(), return_user_data)) {
         std::cout << "Credenciais inválidas!" << std::endl;
         return false;
+    }
+    
+    switch (return_user_data.type)
+    {
+    case USER_TYPE_ADM:     user_buffer = new Administrator(return_user_data.id.id, so_manager, users_db);  break;
+    case USER_TYPE_SLR:     user_buffer = new Seller(return_user_data.id.id, so_manager);                   break;
+    case USER_TYPE_MCH:     user_buffer = new Mechanic(return_user_data.id.id, so_manager);                 break;
+    default:                return false;
     }
 
     return true;
@@ -37,15 +81,25 @@ bool LoginScreen::input_credentials(void) {
 
 int LoginScreen::render(void) {
     clean_screen();
-
-    printf("Login\n\n");
+    /*
+    MenuScreen::set_bg();
+    MenuScreen::set_fg();
+    MenuScreen::fill_char(' ');
     
-    std::cout << "\n\n\n\nCALA A BOCA\n" << std::endl;
+    const int username_label_x = MenuScreen::width >> 3;
+    const int username_label_y = MenuScreen::height >> 2;
+
+    MenuScreen::pos_string(username_label_x, username_label_y, "Nome de usuário: ");
+    MenuScreen::pos_string(username_label_x, username_label_y + 1, "Senha: ");
+    MenuScreen::to_ending();
+    */
+
+    std::cout << "Login\n\n\n";
 
     return 0;
 }
 
-User * LoginScreen::menu(void) { //TODO: criar um meio de fazer a pessoa quitar daqui
+int LoginScreen::interact(void) { //TODO: criar um meio de fazer a pessoa quitar daqui
     user_buffer = nullptr;
 
     login_loop = true;
@@ -53,55 +107,22 @@ User * LoginScreen::menu(void) { //TODO: criar um meio de fazer a pessoa quitar 
     {
         LoginScreen::render();
 
-        if (! LoginScreen::input_credentials()) {
+        if (! LoginScreen::capture_credentials()) {
             std::cout << "Deseja continuar? ";
-
             login_loop = input_verification();
         }
         else login_loop = false;
     }
-    // Users_DB :: bool login(const username_string_t, const password_string_t, class User ** the_user);
 
-    std::cout << "Logado!" << std::endl;
-    
-    return user_buffer;
+    if (user_buffer != nullptr)
+        return 1;
+    return 0;
 }
 
-
-#if 0
-void LoginScreen::capture_username(void) {
-    std::cin >> input_username;
-    input_username.resize(16);
-    printf("input_username: <%s>\n", input_username.c_str());
-}
-
-void LoginScreen::capture_password(void) {
-    std::cin >> input_password;
-    input_password.resize(16);
-    printf("input_password: <%s>\n", input_password.c_str());
-}
-
-void LoginScreen::render(void)
+int LoginScreen::user_interact(void)
 {
-    clean_screen();
-
-    // Coloring the background...
-    set_bg(); 
-    fill_char(' ');
-
-    set_fg();
-
-    // marking a big x at screen's center (demonstration)
-    go_to_rel(CENTER);
-    printf("X");
-    
-    centralize_string_at(width >> 3, (height >> 3), "Login")
-        && centralize_string_at(width >> 3, (height >> 3) + 1, "=====");
-
-    username_label.render_at_screen(this);
-    password_label.render_at_screen(this);
-
-    to_ending();
-    aec_reset();
+    if (user_buffer == nullptr)
+        throw std::runtime_error("Interaction with invalid user at login-screen...");
+    user_buffer->interact();
+    return 0;
 }
-#endif

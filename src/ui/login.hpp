@@ -10,7 +10,8 @@
 #include "ui.hpp"
 #include "../databases/users-db.hpp"
 #include "../users/user.hpp"
-
+#include "../users/seller.hpp"
+#include "../users/admin.hpp"
 
 // The steps there will be at login screen.
 typedef enum {
@@ -22,54 +23,27 @@ typedef enum {
 } LOGIN_STEPS;
 
 
-class LoginScreen : virtual public Screen {
+class LoginScreen : virtual public MenuScreen {
 private:
     class User * user_buffer = nullptr;
-    class Users_DB * users_db;
+    class SO_Manager * so_manager = nullptr;
+    class Users_DB * users_db = nullptr;
 
     std::string username_buffer;
     std::string password_buffer;
 
     bool login_loop = true;
 
-    bool input_credentials(void);
+    bool capture_credentials(void);
     int render(void);
 
+    void check_databases(void);
 public:
-    LoginScreen(Users_DB * users_db);
+    LoginScreen(class SO_Manager * const so_manager, class Users_DB * const users_db);
+    LoginScreen(int w, int h, class SO_Manager * const so_manager, class Users_DB * const users_db);
     virtual ~LoginScreen(void);
-
-    class User * menu(void);
+    virtual int interact(void);
+    int user_interact(void);
 };
-
-
-#if 0
-class LoginScreen : public Screen {
-private:
-    int state = LS_NOTHING; // Tells in which state of processing is the login screen interaction.
-    bool logged;
-
-    // Text labels...
-    Label username_label, password_label;
-
-    std::string input_username; // Holds the username string the user types...
-    std::string input_password; // Holds the password string the user types...
-
-public:
-    LoginScreen(int x, int y, rgb bg, rgb fg) :
-        Screen(x, y, bg, fg)
-    {
-        username_label = Label(width >> 3, (height >> 1) - 2, "Username: ");
-        password_label = Label(width >> 3, (height >> 1) - 1, "Password: ");
-
-        input_username = "";
-        input_password = "";
-    }
-
-    void render(void);
-    void capture_username(void);
-    void capture_password(void);
-};
-#endif
 
 #endif // _LOGIN_HEADER_

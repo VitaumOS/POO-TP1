@@ -34,8 +34,10 @@ dummy_cache_file	:= $(dir_tmp)__nothing__.log
 # Building
 # ========
 
-EXE_COMPILE_DIRECTIVES		:= -Wall -Wextra -O3 -I"$(dir_hdr)"
-OBJ_COMPILE_DIRECTIVES		:= -Wall -Wextra -O3 -I"$(dir_hdr)"
+OPTIMIZATION = -O3
+
+EXE_COMPILE_DIRECTIVES		:= -Wall -Wextra $(OPTIMIZATION) -I"$(dir_hdr)"
+OBJ_COMPILE_DIRECTIVES		:= -Wall -Wextra $(OPTIMIZATION) -I"$(dir_hdr)"
 
 # Building the path...
 ifeq ($(OS),Windows_NT)

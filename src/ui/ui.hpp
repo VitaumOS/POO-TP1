@@ -33,7 +33,7 @@
 // Coloring
 // ========
 
-typedef struct { uint8_t r, g, b; } rgb;
+typedef struct rgb { uint8_t r, g, b; } rgb;
 
 
 // Positioning
@@ -58,9 +58,7 @@ typedef enum {
 
 
 /*	*/
-class Screen {
-private:
-
+class MenuScreen {
 protected:
 	int width, height;
 	rgb bg, fg;
@@ -68,7 +66,7 @@ protected:
 	void set_bg(void)	const { aec_bg_rgb(bg.r, bg.g, bg.b); }
 	void set_fg(void)	const { aec_fg_rgb(fg.r, fg.g, fg.b); }
 
-	void fill_char(char c);
+	void fill_char(char c) const;
 	
 	void to_beggining(void)	const { 
 		aec_beginning(); 
@@ -143,9 +141,10 @@ protected:
 	// virtual int process_events(void) { return -1; }
 
 public:
-	Screen(void);
-	Screen(int width, int height, rgb bg, rgb fg);
-	virtual ~Screen(void);
+	MenuScreen(void);
+	MenuScreen(int width, int height);
+	MenuScreen(int width, int height, rgb bg, rgb fg);
+	virtual ~MenuScreen(void);
 
 	virtual int interact(void) { return -1; }
 

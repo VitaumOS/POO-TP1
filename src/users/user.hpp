@@ -7,11 +7,6 @@
 #include "stdexcept"
 #include "../databases/so-db.hpp"
 
-typedef enum {
-    WRONG_PASSWORD,
-    SUCCESSFUL_LOGIN,
-} SYSTEM_LOGIN_CODE;
-
 
 constexpr size_t username_string_length = 64ULL;
 constexpr size_t password_string_length = 64ULL;
@@ -19,13 +14,12 @@ constexpr size_t password_string_length = 64ULL;
 typedef char username_string_t[username_string_length];
 typedef char password_string_t[password_string_length];
 
-
 /*
 
 */
 class User {
 private:
-    id_t id;    // Holds the ID for the user.
+    Id_t id;    // Holds the ID for the user.
 
 protected:
     bool logged;
@@ -33,7 +27,7 @@ protected:
     std::string string_buffer;
 
 public:
-    User(id_t id, SO_Manager * const so_manager) : id(id), so_manager(so_manager) 
+    User(Id_t id, SO_Manager * const so_manager) : id(id), so_manager(so_manager) 
     {
         printf("+ user so_manager=%p\n", so_manager);
 
@@ -51,7 +45,7 @@ public:
 
     // virtual SYSTEM_LOGIN_CODE login(void) { return SUCCESSFUL_LOGIN; };
     
-    inline id_t get_id(void) const { 
+    inline Id_t get_id(void) const { 
         return id; 
     }
 
@@ -74,7 +68,7 @@ public:
 
 class Mechanic : virtual public User {
 public:
-    Mechanic(id_t id, SO_Manager * so_manager) : User(id, so_manager) {
+    Mechanic(Id_t id, SO_Manager * so_manager) : User(id, so_manager) {
         // blank ~
     }
 

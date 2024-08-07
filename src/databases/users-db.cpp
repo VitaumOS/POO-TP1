@@ -12,12 +12,12 @@
 
 
 struct USERDB_stream_header {
-    id_t item_qtt;
+    Id_t item_qtt;
 
     struct {
-        id_t adm;
-        id_t seller;
-        id_t mechanic;
+        Id_t adm;
+        Id_t seller;
+        Id_t mechanic;
     } next_id;
 };
 
@@ -188,6 +188,7 @@ bool Users_DB::register_user(enum USER_TYPE type, const username_string_t userna
     case USER_TYPE_ADM: ++ next_id.adm;         break;
     case USER_TYPE_SLR: ++ next_id.seller;      break;
     case USER_TYPE_MCH: ++ next_id.mechanic;    break;
+    default:                                    break;
     }
 
     return true;
@@ -196,7 +197,8 @@ bool Users_DB::register_user(enum USER_TYPE type, const username_string_t userna
 /*
 
 */
-bool Users_DB::login(const username_string_t username, const password_string_t password, class User ** the_user) {
+bool Users_DB::login(const username_string_t username, const password_string_t password,
+    struct MinimalUserData & m_data) {
     std::cout << "Attempting logging as " << std::string(username) << " (" <<
         std::string(password) << ")" << std::endl;
 
@@ -204,41 +206,38 @@ bool Users_DB::login(const username_string_t username, const password_string_t p
     int64_t user_index;
     if ((user_index = fetch_username(username, &the_user_data)) < 0) {
         // the username isn't on the database.
-        std::cerr << "[Users_DB::login]: Username not found." << std::endl;
+        // std::cerr << "[Users_DB::login]: Username not found." << std::endl;
         return false;
     }
 
     // comparing credentials (checking the password)
     if (strcmp(password, the_user_data.password)) {
-        std::cerr << "[Users_DB::login]: Wrong Password." << std::endl;
+        // std::cerr << "[Users_DB::login]: Wrong Password." << std::endl;
         return false;
     }
 
     struct _Date date_of_now;
     if (! get_date(date_of_now))
     {
-        std::cerr << "[Users_DB::login]: Couldn't get date..." << std::endl;
+        // std::cerr << "[Users_DB::login]: Couldn't get date..." << std::endl;
         return false;
     }
 
     the_user_data.last_login = date_of_now;
     if (! write_element(user_index, &the_user_data))
     {
-        std::cerr << "[Users_DB::login]: Couldn't update user." << std::endl;
+        // std::cerr << "[Users_DB::login]: Couldn't update user." << std::endl;
         return false;
     }
-    
-    std::cout << "Nothing" << std::endl;
-    printf(">>> %p\n", so_manager);
 
-    // TODO: To instantiate the user to return.
-    switch (the_user_data.type)
-    {
-    case USER_TYPE_ADM:     * the_user = new Administrator(the_user_data.id.id, so_manager, this);  break;
-    case USER_TYPE_SLR:     * the_user = new Seller(the_user_data.id.id, so_manager);               break;
-    case USER_TYPE_MCH:     * the_user = new Mechanic(the_user_data.id.id, so_manager);             break;
-    default:                return false;
-    }
+    /*  Copying the reduced user-data into the return parameter buffer. */
+    m_data = (struct MinimalUserData) {
+        .id = the_user_data.id,
+        .type = the_user_data.type,
+        .active = false, // the_user_data.active,
+        .username = ""
+    };
+    strcpy(m_data.username, the_user_data.username);
 
     return true;
 }
