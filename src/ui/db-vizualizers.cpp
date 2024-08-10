@@ -38,7 +38,7 @@ void DatabaseInterface::process_io(void)
 				load_page();
 			}
 			else {
-				cmd_output_buffer += "* Não há página anterior para mostrar.\n";
+				cmd_output_buffer += "* Nao ha pagina anterior para mostrar.\n";
 			}
 			break;
 
@@ -46,9 +46,15 @@ void DatabaseInterface::process_io(void)
 			if (page_index < page_index_max) {
 				++ page_index;
 				load_page();
+
+				if (focus_index >= last_qtt_read)
+				{
+					focus_index = last_qtt_read - 1;
+				}
+
 			}
 			else {
-				cmd_output_buffer += "* Não há página anterior para mostrar.\n";
+				cmd_output_buffer += "* Nao ha pagina posterior para mostrar.\n";
 			}
 			break;
 
@@ -99,7 +105,7 @@ void DatabaseInterface::process_io(void)
 
 		default:
 			sprintf(cstring_buffer, "%c", command);
-			cmd_output_buffer += "* \"" + std::string(cstring_buffer) + "\" não é reconhecido.\n";
+			cmd_output_buffer += "* \"" + std::string(cstring_buffer) + "\" nao e reconhecido.\n";
 			break;
 		}
 	}
@@ -150,14 +156,14 @@ void DatabaseInterface::render_header(void) const {
 
 void DatabaseInterface::render_footer(void) const {
 	print_n_char('\n', 2);
-	print_n_char('-', 10); putchar('\n');
+	print_n_char('-', 160); putchar('\n');
 	std::cout << "\tw:\tItem anterior\n";
-	std::cout << "\ts:\tPróximo item\n";
-	std::cout << "\ta:\tPágina anterior\n";
-	std::cout << "\td:\tPróxima página\n";
+	std::cout << "\ts:\tProximo item\n";
+	std::cout << "\ta:\tPagina anterior\n";
+	std::cout << "\td:\tProxima pagina\n";
 	std::cout << "\ti:\tInspecionar elemento\n";
 	std::cout << "\tq:\tSair do visualizador\n";
-	print_n_char('=', 50);
+	print_n_char('=', 160);
 	print_n_char('\n', 2);
 
 }
@@ -174,7 +180,7 @@ void DatabaseInterface::color_selected(void) const {
 }
 
 void DatabaseInterface::inspect(void) {
-	std::cout << "NÃO ESTÁ IMPLEMENTADO AINDA!\n";
+	std::cout << "NAO ESTA IMPLEMENTADO AINDA!\n";
 	char c;
 	std::cin >> c;
 }
@@ -259,16 +265,16 @@ void SO_Vizualizer::render_header(void) const
 	constexpr const char * menu_base_title = "SO vizualizer: ";
 	constexpr size_t title_length = literal_string_length(menu_base_title);
 
-	print_n_char('=', 50); putchar('\n');
+	print_n_char('=', 160); putchar('\n');
 
 	printf("%s ", menu_base_title);
 	switch (category) {
 	case SO_OPEN:				printf("Abrir SOs\n");									break;
-	case SO_BUDGET:				printf("Orçar SOs\n");									break;
-	case SO_MAINTENANCE:		printf("Manutenção SOs\n");								break;
-	case SO_CLOSED:				printf("Fechar os SOs (em manutenção)\n");				break;
+	case SO_BUDGET:				printf("Orcar SOs\n");									break;
+	case SO_MAINTENANCE:		printf("Manutencao SOs\n");								break;
+	case SO_CLOSED:				printf("Fechar os SOs (em manutencao)\n");				break;
 	case SO_CANCELED:			printf("SOs canceladas (fechado depois abrir)\n");		break;
-	case SO_CLOSED_BUDGET:		printf("SOs fechados após já terem sidos orçados\n");	break;
+	case SO_CLOSED_BUDGET:		printf("SOs fechados apos ja terem sidos orcados\n");	break;
 	case SO_ALL:				printf("Todos SOs\n");									break;
 	default:					printf("DESCONHECIDO\n");								break;
 	}
@@ -281,14 +287,14 @@ void SO_Vizualizer::render_header(void) const
 void SO_Vizualizer::render_footer(void) const
 {
 	print_n_char('\n', 2);
-	print_n_char('-', 10); putchar('\n');
+	print_n_char('-', 160); putchar('\n');
 	std::cout << "\tw:\tItem anterior\n";
-	std::cout << "\ts:\tPróximo item\n";
-	std::cout << "\ta:\tPágina anterior\n";
-	std::cout << "\td:\tPróxima página\n";
+	std::cout << "\ts:\tProximo item\n";
+	std::cout << "\ta:\tPagina anterior\n";
+	std::cout << "\td:\tProxima pagina\n";
 	std::cout << "\ti:\tInspecionar elemento\n";
 	std::cout << "\tq:\tSair do visualizador\n";
-	print_n_char('=', 50);
+	print_n_char('=', 160);
 	print_n_char('\n', 2);
 
 	fflush(stdout);
@@ -299,7 +305,7 @@ void SO_Vizualizer::render_page(void) const
 	print_n_char('\n', 2);
 
 	printf("Page: #%03llu\n", page_index);
-	fprintf(stdout, "SO-ID\ESTADO\tCLIENT-ID\tHRD\t LBR\t\tDATA DE CRIAÇÃO\t\tDATA UPADA\t\n");
+	fprintf(stdout, "SO-ID\tESTADO\tCLIENT-ID\tHRD\t LBR\t\tDATA DE CRIACAO\t\tDATA UPADA\t\n");
 	
 	const size_t index = page_index * page_size;
 	size_t iterator_limit = page_size;
@@ -344,11 +350,11 @@ void SO_Vizualizer::print_so(const struct ServiceOrder & so) const
 	switch (so.stage)
 	{
 	case SO_OPEN:			std::cout << "aberto";					break;
-	case SO_BUDGET:			std::cout << "orçado";					break;
-	case SO_MAINTENANCE:	std::cout << "manutenção";				break;
+	case SO_BUDGET:			std::cout << "orcado";					break;
+	case SO_MAINTENANCE:	std::cout << "manutencao";				break;
 	case SO_CLOSED:			std::cout << "fechado";					break;
 	case SO_CANCELED:		std::cout << "cancelado";				break;
-	case SO_CLOSED_BUDGET:	std::cout << "fechado após orçamento";	break;
+	case SO_CLOSED_BUDGET:	std::cout << "fechado apos orcamento";	break;
 	default:				std::cout << "estado desconhecido";		break;
 	}
 	std::cout << " order\n";
@@ -356,14 +362,14 @@ void SO_Vizualizer::print_so(const struct ServiceOrder & so) const
 	printf("\tid: %019llu\n", (unsigned long long) so.id);
 	printf("\tid do cliente:\n");
 	printf("\tpessoa:\t %llu\n", (unsigned long long) so.client_id.person_id);
-	printf("\tveículo:\t %llu\n", (unsigned long long) so.client_id.vehicle_id);
+	printf("\tveiculo:\t %llu\n", (unsigned long long) so.client_id.vehicle_id);
 	printf("\nproblema: %-64s\n", so.issue_description);
 	// printf("address: %-64s\n", so.budget_description);
 	printf("\thardware-budget: ");
 	std::cout << so.hardware_price;
 	printf("\tlabor-budget: ");
 	std::cout << so.labor_price;
-	printf("\n\n\tcdata de criação: ");
+	printf("\n\n\tcdata de criaï¿½ï¿½o: ");
 	std::cout << so.creation_date;
 	printf("\n\tdata upada: ");
 	std::cout << so.update_date;
@@ -381,7 +387,7 @@ void SO_Vizualizer::inspect(void)
 	struct ServiceOrder so = vpage[focus_index];
 	SO_Vizualizer::print_so(so);
 
-	printf("NÃO ESTÁ IMPLEMENTADO AINDA\n(DIGITE QUALQUER COISA PARA SAIR)\n");
+	printf("NAO ESTA IMPLEMENTADO AINDA\n(DIGITE QUALQUER COISA PARA SAIR)\n");
 	char c;
 	std::cin >> c;
 }
@@ -405,12 +411,13 @@ private:
 		clean_screen();
 
 		// header
-		std::cout << "Inpecionar usuário" << std::endl;
-		std::cout << "--------------" << std::endl;
+		std::cout << "==================================================" << std::endl;
+		std::cout << "\t\tInspecionar usuario" 				  				  << std::endl;
+		std::cout << "--------------------------------------------------" << std::endl;
 
 		// user information
 		printf("\n\n\n");
-		printf("usuário: ");
+		printf("usuario: ");
 
 		if (! user_data.active)
 		{
@@ -427,12 +434,12 @@ private:
 
 		// footer
 		print_n_char('\n', 2);
-		print_n_char('-', 10); putchar('\n');
-		std::cout << "\tu:\tmudar o nome de usuário\n";
+		print_n_char('-', 50); putchar('\n');
+		std::cout << "\tu:\tmudar o nome de usuario\n";
 		std::cout << "\tp:\tmudar a senha\n";
-		std::cout << "\td:\tDeletar usuário\n";
+		std::cout << "\td:\tDeletar usuario\n";
 		std::cout << "\tv:\tExibir senha\n";
-		std::cout << "\tq:\tSair da inspeção\n";
+		std::cout << "\tq:\tSair da inspecao\n";
 		print_n_char('=', 50);
 		print_n_char('\n', 2);
 
@@ -447,7 +454,7 @@ private:
 
 		if (! user_data.active)
 		{
-			std::cout << "Você não pode alterar o nome de usuário de um usuário inativo no banco de dados...\n";
+			std::cout << "Voce nao pode alterar o nome de usuario de um usuario inativo no banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		}
@@ -457,7 +464,7 @@ private:
 
 		while (c_username_loop)
 		{
-			std::cout << "Digite o novo nome de usuário: ";
+			std::cout << "Digite o novo nome de usuario: ";
 			std::cin >> new_username_buffer;
 			new_username_buffer.resize(username_string_length);
 
@@ -466,7 +473,7 @@ private:
 			/*	checking if it is attempting to change to the same... */
 			if (! strcmp(new_username_buffer.c_str(), user_data.username))
 			{
-				std::cout << "O nome de usuário já está <" << user_data.username << ">..." << std::endl;
+				std::cout << "O nome de usuario ja esta <" << user_data.username << ">..." << std::endl;
 				press_anything_to_continue();
 				continue;
 			}
@@ -474,21 +481,21 @@ private:
 			/*	checking if the user already exists on the databse... */
 			if (InspectUser::users_editor->fetch_username(new_username_buffer.c_str()))
 			{
-				std::cout << "Já existe um usuário com o nome de usuário <" <<  new_username_buffer << ">." << std::endl;
-				std::cout << "Deseja cancelar a renomeação? ";
+				std::cout << "Ja existe um usuario com o nome de usuario <" <<  new_username_buffer << ">." << std::endl;
+				std::cout << "Deseja cancelar a renomeacao? ";
 				if (input_verification())
 					c_username_loop = false;
 
 				continue;
 			}
 
-			std::cout << "Você tem certeza que quer mudar <" << user_data.username << "> to <" << new_username_buffer << ">? ";
+			std::cout << "Voce tem certeza que quer mudar <" << user_data.username << "> to <" << new_username_buffer << ">? ";
 			if (input_verification()) {
 				struct UserData new_user_data = InspectUser::user_data;
 				strcpy(new_user_data.username, new_username_buffer.c_str());
 
 				if (! users_editor->update_userdata(new_user_data)) {
-					std::cerr << "NÃO FOI POSSÍVEL ATUALIZAR OS DADOS DO USUÁRIO!!!!\n";
+					std::cerr << "NAO FOI POSSIVEL ATUALIZAR OS DADOS DO USUARIO!!!!\n";
 					
 					char c;
 					std::cout << "PRESSIONE QUALQUER COISA PARA SAIR\n";
@@ -499,7 +506,7 @@ private:
 				c_username_loop = false;
 				
 			} else {
-				std::cout << "Cancelar alteração de nome de usuário? ";
+				std::cout << "Cancelar alteracao de nome de usuario? ";
 				if (input_verification()) {
 					c_username_loop = false;
 					break;
@@ -514,7 +521,7 @@ private:
 
 		if (! user_data.active)
 		{
-			std::cout << "Você não pode alterar a senha de um usuário inativo no banco de dados...\n";
+			std::cout << "Voce nao pode alterar a senha de um usuario inativo no banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		}
@@ -541,18 +548,18 @@ private:
 
 			if (new_password_buffer != confirmation_password_buffer)
 			{
-				std::cout << "As duas senhas passadas não correspondem...\n";
+				std::cout << "As duas senhas passadas nao correspondem...\n";
 				continue;
 			}
 
-			std::cout << "Você tem certeza que deseja mudar a senha? ";
+			std::cout << "Voce tem certeza que deseja mudar a senha? ";
 			if (input_verification())
 			{
 				struct UserData new_user_data = InspectUser::user_data;
 				strcpy(new_user_data.password, new_password_buffer.c_str());
 
 				if (! users_editor->update_userdata(new_user_data)) {
-					std::cerr << "NÃO FOI POSSÍVEL ATUALIZAR OS DADOS DO USUÁRIO!!!!\n";
+					std::cerr << "NAO FOI POSSEVEL ATUALIZAR OS DADOS DO USUARIO!!!!\n";
 					press_anything_to_continue();
 				}
 				else InspectUser::user_data = new_user_data;
@@ -561,7 +568,7 @@ private:
 			}
 			else
 			{
-				std::cout << "Cancelar a mudança de senha? ";
+				std::cout << "Cancelar a mudanca de senha? ";
 				if (input_verification()) {
 					c_password_loop = false;
 					break;
@@ -574,25 +581,25 @@ private:
 	{
 		if (user_data.id.id == 0)
 		{
-			std::cout << "Não é possível excluir a chave admin do banco de dados...\n";
+			std::cout << "Nao e possivel excluir a chave admin do banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		} 
 		else if (user_data.id.id == users_editor->admin_data.id.id) 
 		{
-			std::cout << "Você não pode deletar a si mesmo...\n";
+			std::cout << "Voce nao pode deletar a si mesmo...\n";
 			press_anything_to_continue();
 			return;
 		}
 
 		if (! user_data.active)
 		{
-			std::cout << "O usuário já foi excluído do banco de dados...\n";
+			std::cout << "O usuario ja foi excluido do banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		}
 
-		std::cout << "Tem certeza de que deseja excluir o usuário <" <<
+		std::cout << "Tem certeza de que deseja excluir o usuario <" <<
 			user_data.username << ">? ";
 		if (! input_verification())
 			return;
@@ -600,7 +607,7 @@ private:
 		user_data.active = false;
 		if (! users_editor->update_userdata(user_data))
 		{
-			std::cerr << "Não foi possível excluir o usuário do banco de dados...\n";
+			std::cerr << "Nao foi possavel excluir o usuario do banco de dados...\n";
 			user_data.active = true;
 
 			press_anything_to_continue();
@@ -668,14 +675,14 @@ public:
 
 UsersEditor::UsersEditor(class UsersDatabase * const users_db, const struct UserData & admin_data) : vpage(page_size), users_db(users_db), admin_data(admin_data) {
 	if (users_db == nullptr)
-		throw std::runtime_error("Objeto inválido <UsersDatabase> passado para <UsersEditor UI screen>...");
+		throw std::runtime_error("Objeto invalido <UsersDatabase> passado para <UsersEditor UI screen>...");
 
 	if (admin_data.type != USER_TYPE_ADM)
 		throw std::runtime_error("<UserData> invalido para <UsersEditor>...");
 
 	UsersEditor::page_buffer = new struct UserData[UsersEditor::page_size];
 	if (page_buffer == nullptr)
-		throw std::runtime_error("UsersEditor não conseguiu alocar buffer de página...\n");
+		throw std::runtime_error("UsersEditor nao conseguiu alocar buffer de pagina...\n");
 }
 
 UsersEditor::~UsersEditor(void) {
@@ -699,7 +706,7 @@ void UsersEditor::load_page(void)
 
 	UsersEditor::page_buffer = new struct UserData[UsersEditor::page_size];
 	if (page_buffer == nullptr)
-		throw std::runtime_error("UsersEditor não conseguiu alocar buffer de página...\n");
+		throw std::runtime_error("UsersEditor nao conseguiu alocar buffer de pagina...\n");
 	
 	if (fseek(users_db->stream, users_db->stream_header_size, SEEK_SET) == 0) {
 		last_qtt_read = fread(UsersEditor::page_buffer, sizeof(struct UserData), page_size, users_db->stream);
@@ -752,25 +759,25 @@ void UsersEditor::represent_userdata(const struct UserData & user_data) const {
 }
 
 void UsersEditor::render_header(void) const {
-	constexpr const char * menu_base_title = "Visualizador de banco de dados de usuários";
+	constexpr const char * menu_base_title = "Visualizador de banco de dados de usuï¿½rios";
 	constexpr size_t title_length = literal_string_length(menu_base_title);
 
-	print_n_char('=', 50);
+	print_n_char('=', 160);
 	putchar('\n');
 	putchar('\n');
 }
 
 void UsersEditor::render_footer(void) const {
 	print_n_char('\n', 2);
-	print_n_char('-', 10); putchar('\n');
+	print_n_char('-', 160); putchar('\n');
 	std::cout << "\tw:\tItem anterior\n";
-	std::cout << "\ts:\tPróximo item\n";
-	std::cout << "\ta:\tPágina anterior\n";
-	std::cout << "\td:\tPróxima página\n";
+	std::cout << "\ts:\tProximo item\n";
+	std::cout << "\ta:\tPagina anterior\n";
+	std::cout << "\td:\tProxima pagina\n";
 	std::cout << "\ti:\tInspecionar elemento\n";
-	std::cout << "\tn:\tRegistrar novo usuário\n";
+	std::cout << "\tn:\tRegistrar novo usuario\n";
 	std::cout << "\tq:\tSair do visualizador\n";
-	print_n_char('=', 50);
+	print_n_char('=', 160);
 	print_n_char('\n', 2);
 }
 
@@ -778,7 +785,7 @@ void UsersEditor::render_page(void) const {
 	print_n_char('\n', 2);
 
 	printf("Page: #%03llu\n", page_index);
-	fprintf(stdout, "INDEX\tTIPO\t\tRELATIVE-ID\t\t\tNOME DE USUÁRIO\t\t\tDATA DE CRIAÇÃO\t\tDATE UPADA\t\n");
+	fprintf(stdout, "INDEX\tTIPO\t\tRELATIVE-ID\t\t\tNOME DE USUARIO\t\t\tDATA DE CRIACAO\t\tDATA UPADA\t\n");
 	
 	/*  current's page first index. */
 	const size_t index = page_index * page_size;
@@ -842,7 +849,7 @@ void UsersEditor::new_user(void)
 	bool new_user_loop = true;
 	while (new_user_loop)
 	{
-		std::cout << "Qual é o tipo de usuário? ";
+		std::cout << "Qual e o tipo de usuario? ";
 		std::cin >> type_string_buffer;
 		std::cin.clear(); std::cin.ignore(INT64_T_MAX, '\n');
 
@@ -859,11 +866,11 @@ void UsersEditor::new_user(void)
 			the_user_type = USER_TYPE_MCH;
 		}
 		else {
-			std::cerr << "Irreconhecido tipo de usuário...";
+			std::cerr << "Irreconhecido tipo de usuario...";
 			continue;
 		}
 
-		std::cout << "Nome de usuário: ";
+		std::cout << "Nome de usuario: ";
 		std::cin >> username_string_buffer;
 		username_string_buffer.resize(username_string_length);
 
@@ -875,7 +882,7 @@ void UsersEditor::new_user(void)
 
 		std::cin.clear(); std::cin.ignore(INT64_T_MAX, '\n');
 
-		std::cout << "Do você deseja registrar um novo usuário <" << username_string_buffer << ">? ";
+		std::cout << "Voce deseja registrar um novo usuario <" << username_string_buffer << ">? ";
 		if (! input_verification()) {
 			std::cout << "Sair do registramento? ";
 			if (input_verification()) {
@@ -886,7 +893,7 @@ void UsersEditor::new_user(void)
 
 		if (! users_db->register_user(the_user_type, username_string_buffer.c_str(), password_string_buffer.c_str()))
 		{
-			std::cerr << "FALHA AO REGISTRAR NOVO USUÁRIO!\n";
+			std::cerr << "FALHA AO REGISTRAR NOVO USUARIO!\n";
 			press_anything_to_continue();
 		}
 

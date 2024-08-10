@@ -40,6 +40,8 @@ private:
         In case of success, loads a class instance of User at user_buffer. */
     bool capture_credentials(void);
 
+    void render_invalid_credentials(void) const;
+
     int render(void) override;
 
 public:

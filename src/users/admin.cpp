@@ -19,7 +19,7 @@ Administrator::~Administrator(void) {
 
 
 #if 0
-// Função que define o menu para a criação/alteração do vendedor pelo Admnistrador
+// Funï¿½ï¿½o que define o menu para a criaï¿½ï¿½o/alteraï¿½ï¿½o do vendedor pelo Admnistrador
 void Administrator::edit_seller(void) { 
     int option = 0;
     username_string_t username[username_string_length];
@@ -28,7 +28,7 @@ void Administrator::edit_seller(void) {
     bool running_menu = true;
     while (running_menu)
     {
-        cout << "Qual alteração você deseja fazer?"<<endl;
+        cout << "Qual alteraï¿½ï¿½o vocï¿½ deseja fazer?"<<endl;
         cout << "0\t->\tCriar Novo Vendedor;" << endl;
         cout << "1\t->\tEditar Vendedor Existente;" << endl;
         cout << "2\t->\tVoltar;" << endl;
@@ -42,7 +42,7 @@ void Administrator::edit_seller(void) {
         switch(option){
             case 0:
 
-                cout << "Digite o usuário e senha do novo vendedor: ";
+                cout << "Digite o usuï¿½rio e senha do novo vendedor: ";
                 cin >> username >> password;
                 if(!Register_Data_Seller(username, password))
                     cout << "Erro ao criar o Vendedor!"<<endl;
@@ -52,7 +52,7 @@ void Administrator::edit_seller(void) {
             break;
             case 1:
 
-                cout << "Digite o usuário do vendedor que queira alterar: ";
+                cout << "Digite o usuï¿½rio do vendedor que queira alterar: ";
                 cin >> username;
 
                 if(!Update_Data_Seller(username, password))
@@ -64,13 +64,13 @@ void Administrator::edit_seller(void) {
 
             break;
             default:
-                cout <<"Valor inválido!"<<endl;
+                cout <<"Valor invï¿½lido!"<<endl;
             break;
         }
     }
 }
 
-//Função que registra um novo Mecânico. Retorna true se conseguir e falso caso contrário
+//Funï¿½ï¿½o que registra um novo Mecï¿½nico. Retorna true se conseguir e falso caso contrï¿½rio
 bool Administrator::Register_Data_Mechanic(username_string_t username,
     password_string_t password){ 
 
@@ -80,29 +80,29 @@ bool Administrator::Register_Data_Mechanic(username_string_t username,
 }
 
 
-// Função que atualiza as informações de um mecânico já existente. Retorna true se conseguir e falso caso contrário
+// Funï¿½ï¿½o que atualiza as informaï¿½ï¿½es de um mecï¿½nico jï¿½ existente. Retorna true se conseguir e falso caso contrï¿½rio
 bool Administrator::Update_Data_Mechanic(username_string_t username,
     password_string_t password) { 
 
     struct UserData user_data;
     if (users_db->fetch_username(username, user_data) >= 0){
 
-        cout << "Digite o novo usuário e senha do Mecânico \" "<< username<<"\"";
+        cout << "Digite o novo usuï¿½rio e senha do Mecï¿½nico \" "<< username<<"\"";
         cin >> username >> password;
 
         /*
-        update_db(user);  TODO: fazer essa função que atualiza a informação de um usuário (usuário e senha)
+        update_db(user);  TODO: fazer essa funï¿½ï¿½o que atualiza a informaï¿½ï¿½o de um usuï¿½rio (usuï¿½rio e senha)
         */
     }
     return false;
 }
 
-void Administrator::edit_mechanic(void) { // Função que define o menu para a criação/alteração do mecânico pelo Admnistrador
+void Administrator::edit_mechanic(void) { // Funï¿½ï¿½o que define o menu para a criaï¿½ï¿½o/alteraï¿½ï¿½o do mecï¿½nico pelo Admnistrador
     int option;
     do{
-        cout<< "Qual alteração você deseja fazer?"<<endl;
-        cout << "0\t->\tCriar Novo Mecânico;" << endl;
-        cout << "1\t->\tEditar Mecânico Existente;" << endl;
+        cout<< "Qual alteraï¿½ï¿½o vocï¿½ deseja fazer?"<<endl;
+        cout << "0\t->\tCriar Novo Mecï¿½nico;" << endl;
+        cout << "1\t->\tEditar Mecï¿½nico Existente;" << endl;
         cout << "2\t->\tVoltar;" << endl;
 
         cin>>option;
@@ -113,29 +113,29 @@ void Administrator::edit_mechanic(void) { // Função que define o menu para a cri
         switch(option){
             case 0:
 
-                cout << "Digite o usuário e senha do novo Mecânico: ";
+                cout << "Digite o usuï¿½rio e senha do novo Mecï¿½nico: ";
                 cin >> username >> password;
                 if(!Register_Data_Mechanic(username, password))
-                    cout << "Erro ao criar o Mecânico!"<<endl;
+                    cout << "Erro ao criar o Mecï¿½nico!"<<endl;
                 else
-                    cout  << "Mecânico criado com sucesso!"<<endl;
+                    cout  << "Mecï¿½nico criado com sucesso!"<<endl;
                 
             break;
             case 1:
 
-                cout << "Digite o usuário do Mecânico que queira alterar: ";
+                cout << "Digite o usuï¿½rio do Mecï¿½nico que queira alterar: ";
                 cin >> username;
 
                 if(!Update_Data_Mechanic(username, password))
-                    cout << "Erro ao atualizar o Mecânico!"<<endl;
+                    cout << "Erro ao atualizar o Mecï¿½nico!"<<endl;
                 else
-                    cout  << "Mecânico atualizado com sucesso!"<<endl;
+                    cout  << "Mecï¿½nico atualizado com sucesso!"<<endl;
             break;
             case 2:
                 return;
             break;
             default:
-                cout<<"Valor inválido!"<<endl;
+                cout<<"Valor invï¿½lido!"<<endl;
             break;
         }
     }while(option!=2);
@@ -154,7 +154,7 @@ void Administrator::edit_admin(void){
     username_string_t username;
     password_string_t password;
     
-    cout << "Digite o usuário e senha do novo Administrador: ";
+    cout << "Digite o usuï¿½rio e senha do novo Administrador: ";
     cin >> username >> password;
     if(! Register_New_Admin(username, password))
         cout << "Erro ao criar o Administrador!"<<endl;
@@ -172,10 +172,11 @@ int Administrator::render(void)
 
     /*  footer */
     constexpr const char * footer_title = "O que desejas fazer?";
-    print_n_char('-', literal_string_length(footer_title) - 1);
+    //print_n_char('-', literal_string_length(footer_title) - 1);
+    print_n_char('=', 50);
     std::cout << std::endl << footer_title << std::endl;
     std::cout << "1\t->\tSair" << std::endl;
-    std::cout << "2\t->\tGerenciar usuários" << std::endl;
+    std::cout << "2\t->\tGerenciar usuarios" << std::endl;
 
     fflush(stdout);
     return 0;

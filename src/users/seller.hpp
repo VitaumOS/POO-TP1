@@ -31,8 +31,6 @@ private:
 
     void register_client(void);
     void new_so(void);
-    void approve_menu();
-    void close_menu(void);
 
     void manage_sos(void);
 

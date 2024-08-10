@@ -21,18 +21,20 @@ private:
 		clean_screen();
 
 		// header
-		std::cout << "Budget SO Editor" << std::endl;
-		std::cout << "---------------------" << std::endl;
+		std::cout << "==================================================" << std::endl;
+		std::cout << "\t\tBudget SO Editor" << std::endl;
+		std::cout << "==================================================" << std::endl;
 
 		// so information
-		printf("\n\n\n");
+		printf("\n\n");
 		printf("so: ");
-
+		std::cout << so << std::endl;
+		
 		// footer
 		print_n_char('\n', 2);
-		print_n_char('-', 10); putchar('\n');
-		std::cout << "\tb:\tOrçar\n";
-		std::cout << "\tq:\tSair da inspeção\n";
+		print_n_char('-', 50); putchar('\n');
+		std::cout << "\tb:\tOrcar\n";
+		std::cout << "\tq:\tSair da inspecao\n";
 		print_n_char('=', 50);
 		print_n_char('\n', 2);
 
@@ -43,7 +45,7 @@ private:
 	{
 		if (so.stage != SO_OPEN)
 		{
-			std::cout << "The SO não está aberta...\n";
+			std::cout << "A SO nao esta aberta...\n";
 			press_anything_to_continue();
 			return;
 		}
@@ -53,10 +55,10 @@ private:
 
 		int piece_code;
 
-		std::cout << "Entre com os códigos dos componentes - digite (-1) para sair.\n";
+		std::cout << "Entre com os cï¿½digos dos componentes - digite (-1) para sair.\n";
 
 		while (parts.n_pieces < MAX_PIECES) {
-			std::cout << "Código do #" << parts.n_pieces + 1 << " componente: " << std::endl;
+			std::cout << "Cï¿½digo do #" << parts.n_pieces + 1 << " componente: " << std::endl;
 			std::cin >> piece_code;
 			std::cin.clear();
 			std::cin.ignore(INT64_T_MAX, '\n');
@@ -66,15 +68,15 @@ private:
 
 			parts.pieces[parts.n_pieces ++] = static_cast<PIECE_ID> (piece_code);
 		}
-		// std::cout << "Deseja adicionar a peça de código <" << piece_code << "> ao orçamento? ";
+		// std::cout << "Deseja adicionar a peï¿½a de cï¿½digo <" << piece_code << "> ao orï¿½amento? ";
 
-		std::cout << "Tem certeza de que deseja fazer um orçamento SO <" << so.id << ">? ";
+		std::cout << "Tem certeza de que deseja fazer um orcamento SO <" << so.id << ">? ";
 		if (! input_verification())
 			return;
 
 		if (! so_manager->budget_order(so.id, parts, &so))
 		{
-			std::cerr << "Não conseguiu orçar...\n";
+			std::cerr << "Nao conseguiu orcar...\n";
 			press_anything_to_continue();
 			return;
 		}
@@ -173,8 +175,8 @@ private:
 		clean_screen();
 
 		// header
-		std::cout << "Editor de <Manutenção SO>" << std::endl;
-		std::cout << "---------------------" << std::endl;
+		std::cout << "Editor de <Manutencao SO>" << std::endl;
+		std::cout << "--------------------------------------------------" << std::endl;
 
 		// user information
 		printf("\n\n\n");
@@ -184,7 +186,7 @@ private:
 		print_n_char('\n', 2);
 		print_n_char('-', 10); putchar('\n');
 
-		std::cout << "\tq:\tSair da inspeção\n";
+		std::cout << "\tq:\tSair da inspecao\n";
 		print_n_char('=', 50);
 		print_n_char('\n', 2);
 
@@ -208,7 +210,7 @@ private:
 	}
 
 
-public: //PEGA NA FOIA AQUI ZÉ
+public:
 	InspectMaintenanceSO(class SO_Manager * const so_manager, struct ServiceOrder & so) :
 		MenuScreen(), so_manager(so_manager), so(so)
 	{

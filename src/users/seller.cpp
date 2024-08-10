@@ -6,262 +6,6 @@
 #include "seller.hpp"
 
 
-class SO_MenuScreen : virtual public MenuScreen {
-protected:
-    so_id_t id = 0;
-    class SO_Manager * so_manager = nullptr;
-    struct ServiceOrder so_buffer;
-
-    std::string output_buffer;
-
-
-public:
-    SO_MenuScreen(class SO_Manager * const so_manager);
-    virtual ~SO_MenuScreen(void);
-
-};
-
-class SO_ApprovalMenu : virtual public SO_MenuScreen {
-private:
-    so_id_t id = 0;
-    struct ServiceOrder so_buffer;
-
-    std::string output_buffer;
-
-    virtual int render(void);
-    void interact_so(void);
-
-public:
-    SO_ApprovalMenu(class SO_Manager * const so_manager);
-    virtual ~SO_ApprovalMenu(void);
-
-    virtual int interact(void);
-    inline so_id_t get_id(void) const { return id; };
-};
-
-class SO_ClosingMenu : virtual public SO_MenuScreen {
-private:
-
-    virtual int render(void);
-
-public:
-    SO_ClosingMenu(class SO_Manager * const so_manager);
-    virtual ~SO_ClosingMenu(void);
-
-    virtual int interact(void);
-};
-
-SO_MenuScreen::SO_MenuScreen(class SO_Manager * const so_manager) : MenuScreen(), so_manager(so_manager) {
-    if (so_manager == nullptr)
-        throw std::runtime_error("VTMNC\n");
-}
-
-SO_MenuScreen::~SO_MenuScreen(void) {
-
-}
-
-SO_ApprovalMenu::SO_ApprovalMenu(class SO_Manager * const so_manager) : SO_MenuScreen(so_manager) {
-
-}
-
-SO_ApprovalMenu::~SO_ApprovalMenu(void) {
-
-}
-
-int SO_ApprovalMenu::render(void)
-{
-    clean_screen();
-
-    constexpr const char * menu_base_title = "Menu de aprovações de ordens";
-    constexpr size_t title_length = literal_string_length(menu_base_title);
-
-    print_n_char('=', 50); putchar('\n');
-    printf("%s\n", menu_base_title);
-    print_n_char('*', title_length - 1); putchar('\n');
-    print_n_char('\n', 5);
-
-    std::cout << "*: " << output_buffer;
-    print_n_char('\n', 5);
-
-    return 0;
-}
-
-void SO_ApprovalMenu::interact_so(void)
-{
-    int64_t input_so_id;
-    bool menu_loop = true;
-
-    while (menu_loop)
-    {
-        /*  Asking for the SO id. */
-        std::cin >> input_so_id;
-        clean_stdin();
-
-        if (input_so_id < 0)
-        {
-            std::cout << "Entrada inválida. Deseja tentar inserir novamente? ";
-            if (! input_verification())
-                menu_loop = false;
-            continue;
-        }
-
-        SO_ApprovalMenu::id = static_cast<so_id_t> (input_so_id);
-
-        if (! SO_ApprovalMenu::so_manager->get_order(SO_ApprovalMenu::id, &so_buffer))
-        {
-            std::cout << "Entrada inválida. Não existe nenhuma SO com o id \"" <<
-                static_cast<unsigned long long> (SO_ApprovalMenu::id) << "\". Tente novamente ou dê o bumbum." << std::endl;
-        }
-
-        std::cout << "After get_order..." << std::endl;
-
-        // SO_BUDGET
-        if (SO_ApprovalMenu::so_buffer.stage != SO_BUDGET)
-        {
-            SO_ApprovalMenu::output_buffer +=
-                "VTMNC DIGITA O TREM CERTO VÉI NÓOOOOO (a ordem não está sob o estágio de orçamento).\n";
-            break;
-        }
-
-        /*  Asking for verification on the approving the order. */
-        std::cout << "Deseja aprovar ordem de id \"" << static_cast<unsigned long long> (SO_ApprovalMenu::id) << "\"? ";
-        if (! input_verification())
-        {
-            std::cout << "Deseja cancelá-la? ";
-            if (input_verification())
-            {
-                if (SO_ApprovalMenu::so_manager->close_order(SO_ApprovalMenu::id, &(SO_ApprovalMenu::so_buffer))) {
-                    SO_ApprovalMenu::output_buffer +=
-                        "Ordem NSQLA foi cancelada...\n";
-                }
-                else {
-                    SO_ApprovalMenu::output_buffer +=
-                        "Ordem não pôde ser cancelada...\n";
-                }
-            }
-
-            menu_loop = false;
-            break;
-        }
-
-        if (SO_ApprovalMenu::so_manager->operate_order(SO_ApprovalMenu::id, &(SO_ApprovalMenu::so_buffer))) {
-            SO_ApprovalMenu::output_buffer +=
-                "Ordem SLAOQ aprovada com sucesso...";
-        }
-        else {
-            SO_ApprovalMenu::output_buffer +=
-                "A ordem SLAOQ não pôde ser aprovada...";
-        }
-        menu_loop = false;
-    }
-}
-
-int SO_ApprovalMenu::interact(void)
-{
-    char command_buffer;
-
-    bool menu_loop = true;
-    while (menu_loop) {
-        /*  Rendering the screen... */
-        SO_ApprovalMenu::render();
-        output_buffer.clear();
-
-        /*  Inputting the command. */
-        std::cout << "[i] para entrar com a ordem [q] para sair\n";
-        std::cin >> command_buffer;
-        std::cin.clear();
-        std::cin.ignore(INT64_MAX, '\n');
-
-        switch (command_buffer)
-        {
-        case 'i':
-            SO_ApprovalMenu::interact_so();
-            break;
-
-        case 'q':
-            menu_loop = false;
-            break;
-
-        default: continue;
-        }
-    }
-
-    return 0;
-}
-
-SO_ClosingMenu::SO_ClosingMenu(class SO_Manager * const so_manager) : SO_MenuScreen(so_manager)
-{
-
-
-}
-
-SO_ClosingMenu::~SO_ClosingMenu(void)
-{
-
-}
-
-int SO_ClosingMenu::render(void)
-{
-    clean_screen();
-
-    constexpr const char * menu_base_title = "Menu de conclusão de ordens";
-    constexpr size_t title_length = literal_string_length(menu_base_title);
-
-    print_n_char('=', 50); putchar('\n');
-    printf("%s\n", menu_base_title);
-    print_n_char('*', title_length - 1); putchar('\n');
-    print_n_char('\n', 5);
-
-
-    std::cout << "*: " << output_buffer;
-    print_n_char('\n', 5);
-
-    return 0;
-}
-
-int SO_ClosingMenu::interact(void)
-{
-    char command_buffer;
-
-    char temp_bf;
-
-    bool menu_loop = true;
-    while (menu_loop) {
-        /*  Rendering the screen... */
-        SO_ClosingMenu::render();
-        output_buffer.clear();
-
-        /*  Inputting the command. */
-        std::cout << "[i] para entrar com a ordem [q] para sair\n";
-        std::cin >> command_buffer;
-        std::cin.clear();
-        std::cin.ignore(INT64_MAX, '\n');
-
-        switch (command_buffer)
-        {
-        case 'i':
-            std::cout << "Temporariamente em branco; não implementado ainda... (PRESSIONE ALGO PARA CONTINUAR)" << std::endl;
-            std::cin >> temp_bf;
-            break;
-
-        case 'q':
-            menu_loop = false;
-            break;
-
-        default: continue;
-        }
-    }
-
-    return 0;
-}
-
-
-
-
-
-
-/*  -------------------------- */
-
 class SellerInspectSO : virtual public MenuScreen
 {
 private:
@@ -271,37 +15,112 @@ private:
     bool menu_loop = true;
     bool altered = false;
     std::string feedback_err_buffer;
+    bool positive_highlight = false;
 
     int render(void) override {
         clean_screen();
 
         // header
         std::cout << "Editor de SOs (Vendedor)" << std::endl;
-        std::cout << "------------------------" << std::endl;
+        std::cout << "--------------------------------------------------" << std::endl;
 
-        // user information
+        // so information
         printf("\n\n\n");
-        printf("so: ");
+        std::cout << so;
 
         // footer
         print_n_char('\n', 2);
         print_n_char('-', 10); putchar('\n');
+        
+        if (so.stage == SO_BUDGET)
+            std::cout << "\ti:\tAprovar ordem\n";
 
-        std::cout << "\tq:\tSair da inspeção\n";
+        if (so.stage < SO_CLOSED)
+            std::cout << "\tc:\tFechar ordem\n";
+
+        std::cout << "\tq:\tSair da inspeï¿½ï¿½o\n";
         print_n_char('=', 50);
         print_n_char('\n', 2);
+        
+        if (positive_highlight) aec_fg_rgb(100, 150, 150);
+        else                    aec_fg_rgb(150, 100, 100);
+
+        std::cerr << feedback_err_buffer << std::endl;
+        aec_reset();
 
         return 0;
+    }
+
+    void advance_so(void) {
+        if (so.stage != SO_BUDGET)
+            return;
+
+        std::cout << "Deseja aprovar ordem de id \"" << so.id << "\"?";
+        std::cout << "(Em caso positivo, a ordem serï¿½ encaminhada para os mecï¿½nicos para a manutenï¿½ï¿½o) ";
+        if (! input_verification())
+            return;
+
+        if (SellerInspectSO::so_manager->operate_order(so.id, &so)) 
+        {
+            SellerInspectSO::feedback_err_buffer +=
+                "A ordem pï¿½de ser encaminhada com sucesso para o estado de manutenï¿½ï¿½o...";
+            positive_highlight = true;
+            altered = true;
+        }
+        else {
+            SellerInspectSO::feedback_err_buffer +=
+                "A ordem nï¿½o pï¿½de ser encaminhada com sucesso para o estao de manuteï¿½ï¿½o...";
+        }
+    }
+    
+    void close_so(void) {
+        if (so.stage >= SO_CLOSED)
+            return;
+
+        if (so.stage == SO_MAINTENANCE)
+        {
+            std::cout << "Somente o mecï¿½nico poderï¿½ fechar uma ordem de serviï¿½o sob o estado de manutenï¿½ï¿½o...\n";
+            press_anything_to_continue();
+            return;
+        }
+
+        std::cout << "Sobre a SO de id \"" << so.id << "\": deseja realmente cancelï¿½-la? ";
+        clean_stdin();
+
+        if (input_verification())
+        {
+            if (SellerInspectSO::so_manager->close_order(so.id, &so)) {
+                SellerInspectSO::feedback_err_buffer +=
+                    "A ordem pï¿½de ser fechada com sucesso...";
+                positive_highlight = true;
+                altered = true;
+            }
+            else {
+                SellerInspectSO::feedback_err_buffer +=
+                    "A ordem nï¿½o pï¿½de ser fechada com sucesso...";
+            }
+        }
     }
 
     int process(void) override {
         char command_buffer;
         std::cin >> command_buffer;
 
+        feedback_err_buffer.clear();
+        positive_highlight = false;
+
         switch (command_buffer)
         {
         case 'q':
             SellerInspectSO::menu_loop = false;
+            break;
+        
+        case 'c':
+            SellerInspectSO::close_so();
+            break;
+
+        case 'i':
+            SellerInspectSO::advance_so();
             break;
 
         default:
@@ -339,6 +158,12 @@ public:
             return 1;
         return 0;
     }
+
+    inline struct ServiceOrder get_so(void)
+    {
+        return so;
+    }
+
 };
 
 class SellerSO_Vizualizer : virtual public SO_Vizualizer {
@@ -354,9 +179,9 @@ private:
         print_n_char('\n', 2);
         print_n_char('-', 10); putchar('\n');
         std::cout << "\tw:\tItem anterior\n";
-        std::cout << "\ts:\tPróximo item\n";
-        std::cout << "\ta:\tPágina anterior\n";
-        std::cout << "\td:\tPróxima página\n";
+        std::cout << "\ts:\tProximo item\n";
+        std::cout << "\ta:\tPagina anterior\n";
+        std::cout << "\td:\tProxima pagina\n";
         std::cout << "\ti:\tInspecionar ordem\n";
         
         std::cout << "\tf:\t";
@@ -367,7 +192,7 @@ private:
             break;
 
         case 1:
-            std::cout << "Filtrar por ordens orçamentadas";
+            std::cout << "Filtrar por ordens orcamentadas";
             break;
 
         case 2:
@@ -388,12 +213,12 @@ private:
         
         struct ClientData client_buffer;
         if (! seller->get_client(client_buffer)) {
-            std::cerr << "Falha em associar cliente à nova SO.\n";
+            std::cerr << "Falha em associar cliente a nova SO.\n";
             press_anything_to_continue();
             return;
         }
 
-        std::cout << "Qual é o seu problema?\t";
+        std::cout << "Qual e o seu problema?\t";
 
         std::string issue;
         std::cin >> issue;
@@ -411,7 +236,7 @@ private:
         struct ServiceOrder so_buffer;
         if (! so_manager->new_order(issue.c_str(), client_buffer.id, &so_buffer))
         {
-            std::cout << "falhow...\n";
+            std::cout << "falhou...\n";
             press_anything_to_continue();
             return;
         }
@@ -443,6 +268,27 @@ private:
         reload_page();
     }
 
+    void inspect(void) override {
+        struct ServiceOrder so;
+        SO_Vizualizer::get_service_order(so);
+        
+        SellerInspectSO inspect_so(so_manager, so);
+
+        if (inspect_so.interact() == 0)
+            return;
+
+        struct ServiceOrder _so_buffer = inspect_so.get_so();
+        (* std::next(SOs.begin(), focus_index + page_index * page_size)) = _so_buffer;
+
+        const size_t sos_size = SOs.size();
+        if ((sos_size > 0) && (focus_index > 0) && (focus_index == (sos_size - 1)))
+            focus_index --;
+
+        if (so.stage != SO_ALL)
+            SOs.erase(std::next(SOs.begin(), SO_Vizualizer::focus_index));
+        SO_Vizualizer::reload_page();
+    }
+
 public:
     SellerSO_Vizualizer(class SO_Manager * const so_manager, const struct UserData & user_data,
         class Seller * const seller) : 
@@ -455,23 +301,6 @@ public:
 
     ~SellerSO_Vizualizer(void) {
 
-    }
-
-    void inspect(void) override {
-        struct ServiceOrder so;
-        SO_Vizualizer::get_service_order(so);
-        
-        SellerInspectSO inspect_so(so_manager, so);
-
-        if (inspect_so.interact() == 0)
-            return;
-
-        const size_t sos_size = SOs.size();
-        if ((sos_size > 0) && (focus_index > 0) && (focus_index == (sos_size - 1)))
-            focus_index --;
-
-        SOs.erase(std::next(SOs.begin(), SO_Vizualizer::focus_index));
-        SO_Vizualizer::reload_page();
     }
 };
 
@@ -509,7 +338,7 @@ int Seller::render(void)
             (unsigned long long) client_buffer.id.vehicle_id);
 
         printf("\tPessoa\t|\tnome: %s\n", client_buffer.person.name);
-        std::cout << "\tVeículo\t|\ttipo: " << client_buffer.vehicle.type << ", modelo: "
+        std::cout << "\tVeiculo\t|\ttipo: " << client_buffer.vehicle.type << ", modelo: "
             << client_buffer.vehicle.model << ", kilometragem: "
             << client_buffer.vehicle.mileage << std::endl;
         std::cout << "\tdata de registro: ";
@@ -517,7 +346,7 @@ int Seller::render(void)
 
     }
     else {
-        printf("(cliente não carregado...)\n\n");
+        printf("(cliente nao carregado...)\n\n");
     }
 
     /*  footer: interaction guide */
@@ -527,10 +356,7 @@ int Seller::render(void)
     std::cout << "1\t->\tSair" << std::endl;
     std::cout << "2\t->\tRegistrar um cliente" << std::endl;
     std::cout << "3\t->\tCarregar um cliente" << std::endl;
-    std::cout << "4\t->\tNavegar sobre ordens de serviço" << std::endl;
-
-    std::cout << "5\t->\tAprovar uma ordem de serviço" << std::endl;
-    std::cout << "6\t->\tConcluir ordem de serviço" << std::endl;
+    std::cout << "4\t->\tNavegar sobre ordens de servico" << std::endl;
     
     fflush(stdout);
     return 0;
@@ -569,28 +395,6 @@ int Seller::process(void)
     case 4:
         Seller::manage_sos();
         break;
-    
-    case 5:
-        std::cout << "Gostaria de entrar no menu de navegações de SOs orçamentadas antes? ";
-        if (input_verification()) {
-            so_vizualizer.set_category(SO_BUDGET);
-            so_vizualizer.interact();
-        }
-
-        Seller::approve_menu();
-        break;
-
-    case 6:
-
-        std::cout << "Gostaria de entrar no menu de navegações de SOs antes? ";
-        if (input_verification())
-        {
-            so_vizualizer.set_category(SO_ALL);
-            so_vizualizer.interact();
-        }
-
-        Seller::close_menu();
-        break;
 
     default:
         break;
@@ -609,29 +413,29 @@ void Seller::register_client(void) {
     std::cin.getline(client_buffer.person.name, NAME_SIZE);
     
     if (Seller::load_client(client_buffer.person.name)) {
-        std::cout << "Ocorrência da pessoa <" << client_buffer.person.name << "> encontrada no banco de dados de clientes ("
+        std::cout << "Ocorrï¿½ncia da pessoa <" << client_buffer.person.name << "> encontrada no banco de dados de clientes ("
             << all_client_data.size() << ") clientes." << std::endl;
     }
 
     /*  vehicle's type */
-    std::cout << "Qual é o tipo do veículo (Ex: carro, moto, etc...)?\t";
+    std::cout << "Qual ï¿½ o tipo do veï¿½culo (Ex: carro, moto, etc...)?\t";
     std::cin.getline(client_buffer.vehicle.type, NAME_SIZE);
     
     /*  vehicle's model */
-    std::cout << "Qual é o modelo do veículo?\t\t\t\t";
+    std::cout << "Qual ï¿½ o modelo do veï¿½culo?\t\t\t\t";
     std::cin.getline(client_buffer.vehicle.model, NAME_SIZE);
 
     /*  vehicl's mileage */
-    std::cout << "Qual é a quilometragem do seu veículo?\t\t\t";
+    std::cout << "Qual ï¿½ a quilometragem do seu veï¿½culo?\t\t\t";
     do {
         std::cin >> client_buffer.vehicle.mileage;
         clean_stdin();
         
-    } while ((client_buffer.vehicle.mileage < 0) && (std::cout << "Entrada inválida para kilometragem. Redigite-a:\t\t"));
+    } while ((client_buffer.vehicle.mileage < 0) && (std::cout << "Entrada invï¿½lida para kilometragem. Redigite-a:\t\t"));
 
 
-    // TODO: deixar meió
-    printf("Pessoa\t| Nome: %-64s;\nVeículo\t| Modelo: %s, tipo: %s, kilometragem: %d\n",
+    // TODO: deixar meiï¿½
+    printf("Pessoa\t| Nome: %-64s;\nVeï¿½culo\t| Modelo: %s, tipo: %s, kilometragem: %d\n",
         client_buffer.person.name,
         client_buffer.vehicle.model, client_buffer.vehicle.type, (int) client_buffer.vehicle.mileage);
     
@@ -656,7 +460,7 @@ bool Seller::get_client(struct ClientData & client_buffer) {
 
         if (! Seller::load_client_interface())
         {
-            std::cout << "Não foi possível carregar o cliente.\n";
+            std::cout << "Nao foi possivel carregar o cliente.\n";
             MenuScreen::press_anything_to_continue();
             return false;
         }
@@ -669,12 +473,12 @@ bool Seller::get_client(struct ClientData & client_buffer) {
 void Seller::new_so(void) {
     
     if ((! client_is_loaded) && (! Seller::load_client_interface())) {
-        std::cout << "Não foi possível carregar o cliente.\n";
+        std::cout << "Nao foi possivel carregar o cliente.\n";
         press_anything_to_continue();
         return;
     }
     
-    std::cout << "Qual é o seu problema?\t";
+    std::cout << "Qual e o seu problema?\t";
     std::string issue;
     std::cin >> issue;
     issue.resize(SO_DESCRIPTION_SIZE);
@@ -735,18 +539,18 @@ bool Seller::load_client_interface(void) {
     while (vehicles_menu)
     {
         clean_screen();
-        printf("\nSeleção de Cliente\n\n\tPessoa: %s\n\n", person_data.name);
+        printf("\nSelecao de Cliente\n\n\tPessoa: %s\n\n", person_data.name);
 
         the_client_data = static_cast<struct ClientData> (* std::next(all_client_data.begin(), focus_index));
 
-        printf("\t\tVeículo #%llu/%llu:\n", (unsigned long long) (focus_index + 1), (unsigned long long) all_client_data.size());
+        printf("\t\tVeiculo #%llu/%llu:\n", (unsigned long long) (focus_index + 1), (unsigned long long) all_client_data.size());
         printf("\t\tmodelo: %s, tipo: %s, kilometragem: %llu\n",
             the_client_data.vehicle.model, the_client_data.vehicle.type,
             (unsigned long long) the_client_data.vehicle.mileage);
 
-        printf("\n\na: Veículo anterior\n");
-        printf("d: Veículo posterior\n");
-        printf("q: Sair (confirmar seleção)\n");
+        printf("\n\na: Veiculo anterior\n");
+        printf("d: Veiculo posterior\n");
+        printf("q: Sair (confirmar selecao)\n");
 
         std::cin >> command;
         switch (command){
@@ -776,23 +580,4 @@ bool Seller::load_client(const char name[NAME_SIZE]) {
     
     Seller::client_is_loaded = all_client_data.size() > 0;
     return Seller::client_is_loaded;
-}
-
-
-void Seller::approve_menu(void) {
-    SO_ApprovalMenu approval_menu(so_manager);
-                                    
-    if (approval_menu.interact() >= 0)
-    {
-        so_id_t the_id = approval_menu.get_id();
-    }
-}
-
-void Seller::close_menu(void) {
-    SO_ClosingMenu closing_menu(so_manager);
-
-    if (closing_menu.interact() >= 0)
-    {
-        
-    }
 }

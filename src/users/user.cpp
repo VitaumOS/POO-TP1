@@ -12,7 +12,7 @@ UserScreen::UserScreen(class SO_Manager * const so_manager, class UsersDatabase 
 	char string_buffer[64];
 
 	if (so_manager == nullptr) {
-		sprintf(string_buffer, ";Passando SO_Manager inválido para o usuário (id:%llu) - nullptr.", user_data.id.id);
+		sprintf(string_buffer, ";Passando SO_Manager invï¿½lido para o usuï¿½rio (id:%llu) - nullptr.", user_data.id.id);
 
 		throw std::runtime_error(string_buffer);
 	}
@@ -41,10 +41,11 @@ int UserScreen::interact(void)
 
 void UserScreen::render_menu_header(void) const
 {
-	const size_t menu_title_length = strlen(UserScreen::menu_title);
-
-	printf("%s\n", UserScreen::menu_title);
-	print_n_char('-', menu_title_length);
+	const size_t menu_title_length = 50;
+	print_n_char('=', 50);
+	printf("\n\t\t%s\n", UserScreen::menu_title);
+	//print_n_char('-', menu_title_length);
+	print_n_char('=', 50);
 	printf("\n");
 
 	struct _Date date_of_now;
@@ -54,20 +55,19 @@ void UserScreen::render_menu_header(void) const
 	std::cout << date_of_now;
 
 	aec_fg_rgb(150, 150, 200);
-	std::cout << "\t\ttempo de seção: ";
+	std::cout << "\t\ttempo de selecao: ";
 	struct _Date time_active = date_of_now - interaction_begin;
 	printf("%02hhu:%02hhu:%02hhu [h:m:s]\n", time_active.hour, time_active.minutes, time_active.seconds);
 	aec_reset();
 		
 	/*	user information */
 	const size_t username_length = strlen(user_data.username);
-	printf("\n\n\nUsuário:\t%019llu: ", user_data.id.id);
+	printf("\n\n\nUsuario <%s>:\t[id - %019llu] ", user_data.username, user_data.id.id);
 	aec_bg_rgb(75, 75, 122);
-	printf("%s", user_data.username);
 	aec_reset();
 
 	printf("\n\t\t");
 	print_n_char(' ', 21);
-	print_n_char('-', username_length);
+	//print_n_char('-', username_length);
 	print_n_char('\n', 3);
 }

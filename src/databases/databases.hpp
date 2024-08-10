@@ -188,7 +188,7 @@ Database<ElementType>::initialize_stream(void)
 	stream = nullptr;
 	if (((stream = fopen(filename, "r+b")) == nullptr) && (! Database::overwrite_stream())) {
 		init_succeeded = false;
-		std::cerr << "Não foi possível inicializar o fluxo do <DataBase> corretamente." << std::endl;
+		std::cerr << "Nï¿½o foi possï¿½vel inicializar o fluxo do <DataBase> corretamente." << std::endl;
 		return false;
 	}
 	return true;
@@ -197,7 +197,7 @@ Database<ElementType>::initialize_stream(void)
 template <typename ElementType>
 Database<ElementType>::Database(const char * filename, size_t stream_header_size) : filename(filename), stream_header_size(stream_header_size)
 {
-	std::cout << "Número de elementos por página: " << page_elements_qtt << std::endl;
+	std::cout << "Nï¿½mero de elementos por pï¿½gina: " << page_elements_qtt << std::endl;
 	init_succeeded = true;
 	item_qtt = 0;
 
@@ -225,7 +225,7 @@ Database<ElementType>::~Database(void) {
 	if (stream == nullptr)	return;
 
 	if (! Database::update_stream_header())
-		std::cerr << "O cabeçalho do stream não pôde ser gravado no objeto de classe <Database>." << std::endl;
+		std::cerr << "O cabeï¿½alho do stream nï¿½o pï¿½de ser gravado no objeto de classe <Database>." << std::endl;
 
 	Database::finalize_stream();
 }
@@ -311,7 +311,7 @@ std::list<ElementType> Database<ElementType>::list_filter(std::function<bool(con
 	{
 		if (! read_element(i, & element_buffer))
 		{
-			fprintf(stderr, "[%s] Não pode ler o #%llu elemento.\n", __func__, (unsigned long long) i);
+			fprintf(stderr, "[%s] Nï¿½o pode ler o #%llu elemento.\n", __func__, (unsigned long long) i);
 			continue;
 		}
 

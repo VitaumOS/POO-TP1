@@ -11,8 +11,32 @@
     The method <interact> of this screen will then be responsible for everything. */
 class MainScreen : virtual public MenuScreen
 {
+private:
+    void render_exit_program(void)
+    {
+        aec_reset();
+        clean_screen();
+        //print_n_char('=', width);
+        aec_bg_rgb(150, 150, 150);
+        fill_char(' ');
+        to_beggining();
+        print_n_char('\n', 3);
+        //print_n_char('=', width);
+        constexpr const char * message = "Deseja encerrar o programa?";
+        constexpr size_t message_size = literal_string_length(message);
+
+        aec_crs_right((width - message_size) >> 1);
+        std::cout << message;
+        print_n_char('\n', 3);
+        aec_crs_right((width - 8) >> 1);
+    }
+    
 public:
-    MainScreen(void) { }
+    MainScreen(void) { 
+        width = 100;
+        height = 30;
+    }
+
     ~MainScreen(void) { }
 
     int interact(void)
@@ -23,8 +47,8 @@ public:
         class UsersDatabase users_db(&so_manager);
         if (! users_db.could_initialize())      return -2;
         
-        class LoginScreen login_screen(50, 25, &so_manager, &users_db);
-
+        class LoginScreen login_screen(width, height, &so_manager, &users_db);
+        
         bool main_loop = true;
         while (main_loop)
         {   
@@ -33,11 +57,7 @@ public:
                 login_screen.user_interact();
             }
 
-            clean_screen();
-            print_n_char('\n', 3);
-            std::cout << "\tDeseja encerrar o programa? ";
-            print_n_char('\n', 3);
-            printf("\t\t");
+            render_exit_program();
 
             if (input_verification())   main_loop = false;
         }

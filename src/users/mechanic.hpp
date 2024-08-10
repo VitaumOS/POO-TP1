@@ -16,14 +16,15 @@ private:
         clean_screen();
 
         /*	header */
-        std::cout << "Mechanic Menu\n";
-        std::cout << "-------------\n\n";
+        std::cout << "==================================================\n";
+        std::cout << "\t\tMechanic Menu\n";
+        std::cout << "==================================================\n\n";
 
         /*	footer */
-        std::cout << "\tO que deseja fazer a seguir? " << std::endl;
-        std::cout << "\t0\t->\tSair\n";
-        std::cout << "\t1\t->\tOrçar\n";
-        std::cout << "\t2\t->\tManutençar\n";
+        std::cout << "O que deseja fazer a seguir? " << std::endl;
+        std::cout << "0\t->\tSair\n";
+        std::cout << "1\t->\tOrcar\n";
+        std::cout << "2\t->\tFazer manutencao\n";
 
         fflush(stdout);
         return 0;

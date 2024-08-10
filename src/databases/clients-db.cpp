@@ -43,7 +43,7 @@ ClientsManager::~ClientsManager(void) {
 	print_database();
 
 	if (! ClientsManager::update_stream_header())
-		std::cerr << "Não foi possível gravar o cabeçalho do stream em ClientsManager." << std::endl;
+		std::cerr << "Nï¿½o foi possï¿½vel gravar o cabeï¿½alho do stream em ClientsManager." << std::endl;
 
 	finalize_stream();
 }
@@ -158,7 +158,7 @@ bool ClientsManager::register_client(const struct PersonData & person, const str
 	/*	there's no occurrence of the person on the database */
 	else if (index == -1)
 	{
-		std::cerr << "[ClientsManager] Pessoa inédita...\n";
+		std::cerr << "[ClientsManager] Pessoa inï¿½dita...\n";
 	}
 
 	Date date_of_now;
