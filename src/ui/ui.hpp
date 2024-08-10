@@ -1,24 +1,30 @@
 /*	<src/headers/UI.h>
 
-	Where the UI components are defined. */
+	Where the UI screen is declared. */
  
 
 #ifndef _UI_HEADER_
 #define _UI_HEADER_
 
-
+/*	toggling ANSI-ESC for graphical handling... */
 #define ANSI_ESCAPE_CODE
 #include "ansi-esc.h"
+
 #include "commons.h"
-#include <iostream>
+
+/*	mixed C/C++ IO handling */
 #include <stdio.h>
-#include <string.h>
+#include <iostream>
+
+#include <string.h>	// for strcpy
 
 
 // Cleaning screen
 // ===============
 
 #if ! defined(CLEAN_SCREEN)
+	/*	Defines whether the clean_screen macro will try to clean the stdout output screen.
+		The functionality is toggled on by default. */
 	#define CLEAN_SCREEN	true
 #endif // defined(CLEAN_SCREEN)
 
@@ -57,9 +63,13 @@ typedef enum {
 #define print_c_string(_String)	(fputs(_String, stdout) > 0)
 
 
-/*	*/
+/*	Represents a UI menu screen. 
+	It's looping is given by its virtual method <interact>. */
 class MenuScreen {
 protected:
+	/*	Graphical attributes and methods
+		(not yet used) */
+
 	int width, height;
 	rgb bg, fg;
 	
@@ -132,13 +142,38 @@ protected:
 			&& print_c_string(_String);
 	}
 
+	/*	Standard interaction methods */
+
+	/*	Cleans the stdin buffer. 
+		Internally, calls std::cin::clean, and std::cin::ignore
+		with a reasonably large limit with '\n'. */
+	void clean_stdin(void);
+
+	/*	Interacts with the user, asking whether to proceed; returns that response.
+		Filters to only let pass if either the keys [s] or [n] are entered. */
+	bool input_verification(void);
+
+	/*	Interacts with the user, asking any key to proceed. 
+		A single character is consumed, as an effect. */
+	void press_anything_to_continue(void);
+
+	/*	Virtual inner methods */
+
+	/*	Renders the screen. 
+		By standard, the return-code is 0 in case of success.
+		Shall be overwritten hierarchically. */
 	virtual int render(void) {
 		aec_clean();
-		printf("\n\t\tBLANK UNDEFINED SCREEN\n\n\n");
+		std::cout << "\n\t\tBLANK UNDEFINED SCREEN\n\n\n";
 		return -1;
 	}
 
-	// virtual int process_events(void) { return -1; }
+	/*	Processes the input on stdout. 
+		By standard, the return-code is 0 in case of success.
+		Shall be overwritten hierarchically. */
+	virtual int process(void) { 
+		return -1; 
+	}
 
 public:
 	MenuScreen(void);
@@ -146,9 +181,17 @@ public:
 	MenuScreen(int width, int height, rgb bg, rgb fg);
 	virtual ~MenuScreen(void);
 
-	virtual int interact(void) { return -1; }
-
+	/*	Interacts with the screen. Represents the driver call for menu loop.
+		By standard, the return-code is 0 in case of success.
+		Shall be overwritten hierarchically. */
+	virtual int interact(void) { 
+		return -1; 
+	}
 };
+
+
+/*	Standard UI and graphical tools 
+ *	------------------------------- */
 
 constexpr size_t literal_string_length(const char * _String)
 {
@@ -160,6 +203,8 @@ constexpr size_t literal_string_length(const char * _String)
 inline void print_n_char(char c, size_t n) {	while (n --) putchar(c); }
 
 bool input_verification(void);
+void press_anything_to_continue(void);
+
 int64_t input_numeral(void);
 
 #endif // _UI_HEADER_

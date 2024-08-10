@@ -50,6 +50,7 @@ struct ServiceOrder {
     client_id_t client_id;          // The client's ID for the SO.
 
     char issue_description[SO_DESCRIPTION_SIZE];
+    // char addressed_description[SO_DESCRIPTION_SIZE];
 
     // Budget and pricing.
     struct PartsBudget budget;  // Contains the budget information for all the parts.
@@ -61,13 +62,10 @@ struct ServiceOrder {
     Date update_date;   // The date at which the SO was last updated.
 };
 
-typedef enum _SOH {
-    SOH_SUCCESS
-} SO_HANDLING;
 
 /*  SOV ATTRIBUTE. 
     TODO: move. */
-constexpr size_t vpage_size = 10;
+constexpr size_t page_size = 10;
 
 
 class SO_Manager : virtual public Database <struct ServiceOrder> {
@@ -123,9 +121,13 @@ public:
     bool get_order(Id_t id, struct ServiceOrder * return_so) const;
     
     /*  Lists all SOs in the database that fits a certain stage category. */
-    std::list<struct ServiceOrder> so_category(SERVICE_ORDER_STAGE category);
+    std::list<struct ServiceOrder> so_category(SERVICE_ORDER_STAGE category) const;
 
-    friend class SO_Vizualizer;
+    /*  Lists all SOs in the database from a given client. */
+    std::list<struct ServiceOrder> so_client(const struct ClientData &) const;
+
+    /*  Lists all SOs in the database from a given person. */
+    std::list<struct ServiceOrder> so_person(const Id_t &) const;
 };
 
 std::ostream & operator<<(std::ostream & stream, const struct ServiceOrder & so);

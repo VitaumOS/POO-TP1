@@ -9,7 +9,7 @@
 #define _USERS_DATABASE_HPP_INCLUDED_
 
 
-#include "../users/user.hpp"
+// #include "../users/user.hpp"
 #include "databases.hpp"
 #include "so-db.hpp"
 
@@ -31,34 +31,48 @@ typedef union {
     };
 } user_id_t;
 
+inline bool operator==(const user_id_t & id_1, const user_id_t & id_2) { return id_1.id == id_2.id; }
+
 
 constexpr c_filepath users_DB_filename = "data/users.bin";
 
-/*  Represents the data that is stored on the database for each user. */
-struct UserData {
-    user_id_t id;
-    enum USER_TYPE type;
-
-    // bool active;
-
-    char username[username_string_length];
-    char password[password_string_length];
-
-    struct _Date registry_date;
-    struct _Date last_login;
-};
-
 struct MinimalUserData {
+    /*  header-data */
     user_id_t id;
     enum USER_TYPE type;
+    
+    /*  inner data */
     bool active;
-
     username_string_t username;
 };
 
+/*  Represents the data that is stored on the database for each user. */
+struct UserData {
+    /* header data */
+    user_id_t id;
+    enum USER_TYPE type;
+    
+    /*  inner data */
+    bool active;
+    // bool logged;
+
+    username_string_t username;
+    password_string_t password;
+
+    /*  meta-data */
+    struct _Date registry_date;
+    struct _Date last_login;
+    struct _Date last_update;
+    // struct _Date last_session_time;
+    // struct _Date total_session_time;
+    
+    uint64_t interactions;
+    uint8_t wrong_password_attempts;
+};
 
 
-class Users_DB : virtual public Database <struct UserData> {
+
+class UsersDatabase : virtual public Database <struct UserData> {
 private:
     
     void fprint_element(FILE * _OutputStream, const struct UserData * _User) const;
@@ -76,19 +90,33 @@ private:
 
     SO_Manager * so_manager;
 
-public:
-    Users_DB(void);
-    Users_DB(SO_Manager * const so_manager);
-    ~Users_DB(void);
+    bool update_userdata(const struct UserData & new_user_data);
 
-    // bool login(const username_string_t, const password_string_t, class User * const);
+    int64_t fetch_userid(const user_id_t &, struct UserData &) const;
+    int64_t fetch_username(const username_string_t, struct UserData &) const;
+    int64_t fetch_username(const username_string_t) const;
+
+    bool in_database(const Id_t &) const;
+    bool in_database(const user_id_t &) const;
+
+public:
+    UsersDatabase(void);
+    UsersDatabase(SO_Manager * const so_manager);
+    ~UsersDatabase(void);
 
     bool register_user(enum USER_TYPE type, const username_string_t username, const password_string_t password);
-    bool login(const username_string_t, const password_string_t, struct MinimalUserData &);
+    
+    bool login(const username_string_t, const password_string_t, struct MinimalUserData &) const;
+    bool logout(const struct MinimalUserData &) const;
+    bool logout(const user_id_t &) const;
 
-    int64_t fetch_username(const username_string_t username, struct UserData * const return_data);
+
+    bool fetch_id(const Id_t &, struct MinimalUserData &);
+
+    friend class UsersEditor;   /*  Due to the editor needing more deep information about the users... */
+    friend class Administrator;
+    friend class Seller;
 };
-
 
 
 #endif // _USERS_DATABASE_HPP_INCLUDED_

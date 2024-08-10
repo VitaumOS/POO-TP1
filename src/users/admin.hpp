@@ -13,32 +13,22 @@
 #include "seller.hpp"
 
 
-using namespace std;
 
-
-class Administrator : virtual public User {
+class Administrator : virtual public UserScreen {
 private:
-
-    class Users_DB * users_db;
-
-    void edit_seller(void);
-    bool Update_Data_Seller(username_string_t, password_string_t);
-    bool Register_Data_Seller(username_string_t , password_string_t );
-
-    void edit_mechanic(void);
-    bool Update_Data_Mechanic(username_string_t, password_string_t);
-    bool Register_Data_Mechanic(username_string_t, password_string_t);
-
-    void edit_admin(void);
-    bool Register_New_Admin(username_string_t, password_string_t);
-
+    
     void edit_users(void);
+    
+    int render(void);
+    int process(void);
+
 public:
-    Administrator(Id_t id, SO_Manager *, Users_DB *);
+    Administrator(class SO_Manager * const, class UsersDatabase * const, const struct MinimalUserData &);
     virtual ~Administrator(void);
 
-    virtual void interact(void);
+    friend class UsersEditor;
 };
+
 
 
 #endif // _USER_ADMIN_HEADER_

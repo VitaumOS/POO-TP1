@@ -2,7 +2,7 @@
     
     Defines the homogenous database model used throughtout the program. */
 
-/*	Last update: 20/07/2024. */
+/*	Last update: 08/08/2024. */
 
 
 #ifndef _DATABASES_HPP_INCLUDED_
@@ -50,39 +50,32 @@ private:
 	const size_t page_elements_qtt = database_paging_buffer_size / sizeof(ElementType);
 	// byte page_buffer[database_paging_buffer_size]; // NOT YET IMPLEMENTED.
 
-    c_filepath filename;	// The database's (main) stream filename.
-    bool init_succeeded;	// Tracks if the database's initialization was successful.
+    c_filepath filename;			// The database's (main) stream filename.
+    bool init_succeeded = false;	// Tracks if the database's initialization was successful.
     
-    // Attempts initializing (from empty) the file-stream, overwriting it.
-    bool overwrite_stream(void);    
-
-    // Attempts nulling "item_qtt" from stream's header.
-    virtual bool reset_database(void);      
+    bool overwrite_stream(void);	// Attempts initializing (from empty) the file-stream, overwriting it.
+    virtual bool reset_database(void);	// Attempts nulling "item_qtt" from stream's header.
 
 protected:
 	// The database's file-stream.
-    FILE * stream;	
+    FILE * stream = nullptr;	
 
-    /*  Stream-header attributes : keeps overall information of the stream. 
-        As child classes derives from this one, other information shall be aggregated
-        with the standard "item_qtt". stream_header_size shall be updated accordingly. */
-    Id_t item_qtt;  // How many items does is the database holding.
+    /*  Stream-header attributes: keeps overall information of the stream. 
+        As further classes derives from this one, other information shall be aggregated
+        with the standard "item_qtt". stream_header_size will be updated accordingly. */
+    Id_t item_qtt = 0;  // How many items does is the database holding.
 
     // Tracks the size of the class stream header, in bytes.
     // Constant once the object is initialized.
     size_t stream_header_size;
 
-    // Attempts opening the stream. Sets init_succeeded to false in case of failing.
-    bool initialize_stream(void);
+    bool initialize_stream(void);	// Attempts opening the stream. Sets init_succeeded to false in case of failing.
+	inline void finalize_stream(void) { fclose(stream); stream = nullptr; }	// Closes the file-stream.
+    virtual bool retrieve_stream_header(void);		// Reads the internal stream-header structure.
+    virtual bool update_stream_header(void) const;	// Writes the internal stream-header structure.
 
-    // Closes the file-stream.
-    inline void finalize_stream(void) { fclose(stream); stream = nullptr; }; 
-    
-    // Reads the internal stream-header structure.
-    virtual bool retrieve_stream_header(void);    
-
-    // Writes the internal stream-header structure.
-    virtual bool update_stream_header(void) const;
+	/*	Searching, retrieving and update
+		-------------------------------- */
 
     /*  Reads a single element in the homogeneous database data-space.
         The element is specified by its index; the element is written by reference.
@@ -108,11 +101,32 @@ protected:
 		return fread(_DstBuffer, sizeof(ElementType), n, stream);
 	}
 
+	int64_t fetch_element(std::function<bool(const ElementType &)> match, 
+		ElementType & return_element,
+		size_t _From = 0, size_t _To = 0) const
+	{
+		if (_To == 0)	_To = item_qtt;
+		else _To = _To + 1; // inclusive -> exclusive interval...
+
+		ElementType element_buffer;
+		size_t iterator = _From;
+		while ((iterator < _To) && read_element(iterator, &element_buffer))
+		{
+			if (match(element_buffer))
+			{
+				return_element = element_buffer;
+				return (int64_t) iterator;
+			}
+			iterator ++;
+		}
+		return -1;
+	}
+
     /*  Database Representation
         ----------------------- */
     
     virtual inline void fprint_element(FILE * _OutputStream, const ElementType * _Element) const { 
-		fprintf(_OutputStream, "NONE%p", _Element); 
+		fprintf(_OutputStream, "NADA%p", _Element); 
 	}
 
     /*  Represents the database onto an output stream, sectioned inclusively, from a start to an end
@@ -121,19 +135,38 @@ protected:
         Prints it on its entirety, and on stdout, by default. */
     bool print_database(FILE * _OutputStream = stdout, size_t _From = 0, size_t _To = 0);
 
-
-    std::list<ElementType> list_filter(std::function<bool(const ElementType &)> check, size_t _From = 0, size_t _To = ((size_t) - 1));
+	/*	Traverses a database's section, and separates the elements which are checked by a predicate into a std::list object. */
+    std::list<ElementType> list_filter(std::function<bool(const ElementType &)> check, size_t _From = 0, size_t _To = ((size_t) - 1)) const;
 
     Database(const char * filename, size_t stream_header_size);
+
 public:
     Database(const char * filename);
     ~Database(void);
+	
+	/*	A separated initializer for the database.
+		It is made necessary, as there is polymorphic derived behavior
+		that can't be initialized on the constructor. */
+	// bool initialize(void);
+
+	/*	Returns the cardinality of the database in elements. */
+	size_t get_size(void) const { return item_qtt; }
 
 	size_t print_database_filtered(std::function<bool(const ElementType &)> check, FILE * _OutputStream = stdout, size_t _From = 0, size_t _To = 0);
 
     /*  Returns if the database initialization was successfully done. 
         In case of fail, the object shall not be used. */
     inline bool could_initialize(void) const { return init_succeeded; }
+
+	/*	Attemps saving the database's state. 
+		For that, closes and re-opens the file-stream. 
+		Returns could_initialize(); that in turn tells whether the procedure was successful. */
+	bool save_state(void) {
+		fclose(stream);
+
+		Database::initialize_stream();
+		return Database::could_initialize();
+	}
 };
 
 
@@ -155,7 +188,7 @@ Database<ElementType>::initialize_stream(void)
 	stream = nullptr;
 	if (((stream = fopen(filename, "r+b")) == nullptr) && (! Database::overwrite_stream())) {
 		init_succeeded = false;
-		std::cerr << "Couldn't initialize the database's stream properly." << std::endl;
+		std::cerr << "Não foi possível inicializar o fluxo do <DataBase> corretamente." << std::endl;
 		return false;
 	}
 	return true;
@@ -164,7 +197,7 @@ Database<ElementType>::initialize_stream(void)
 template <typename ElementType>
 Database<ElementType>::Database(const char * filename, size_t stream_header_size) : filename(filename), stream_header_size(stream_header_size)
 {
-	std::cout << "Number of elements per page: " << page_elements_qtt << std::endl;
+	std::cout << "Número de elementos por página: " << page_elements_qtt << std::endl;
 	init_succeeded = true;
 	item_qtt = 0;
 
@@ -174,7 +207,8 @@ Database<ElementType>::Database(const char * filename, size_t stream_header_size
 
 template <typename ElementType>
 Database<ElementType>::Database(const char * filename) : Database(filename, sizeof(item_qtt)) {
-	if (! init_succeeded) return;
+	if (! init_succeeded) 
+		return;
 
 	/*	If reading the stream-header fails, then probably the database is empty.
 		In that case, it is reset. */
@@ -191,7 +225,7 @@ Database<ElementType>::~Database(void) {
 	if (stream == nullptr)	return;
 
 	if (! Database::update_stream_header())
-		std::cerr << "Stream header couldn't be written at <Database> class object." << std::endl;
+		std::cerr << "O cabeçalho do stream não pôde ser gravado no objeto de classe <Database>." << std::endl;
 
 	Database::finalize_stream();
 }
@@ -260,7 +294,7 @@ bool Database<ElementType>::print_database(FILE * _OutputStream, size_t _From, s
 }
 
 template <typename ElementType>
-std::list<ElementType> Database<ElementType>::list_filter(std::function<bool(const ElementType &)> check, size_t _From, size_t _To)
+std::list<ElementType> Database<ElementType>::list_filter(std::function<bool(const ElementType &)> check, size_t _From, size_t _To) const
 {
 	std::list<ElementType> elements;
 
@@ -277,7 +311,7 @@ std::list<ElementType> Database<ElementType>::list_filter(std::function<bool(con
 	{
 		if (! read_element(i, & element_buffer))
 		{
-			fprintf(stderr, "[%s] Couldn't read #%llu element.\n", __func__, (unsigned long long) i);
+			fprintf(stderr, "[%s] Não pode ler o #%llu elemento.\n", __func__, (unsigned long long) i);
 			continue;
 		}
 

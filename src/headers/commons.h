@@ -13,6 +13,13 @@
 #	include "date.hpp"
 #endif
 
+
+/*	Arithmetic *
+ *	========== */
+
+#define in_range(a, b, x)   (((x) >= (a)) && ((b) >= (x)))
+
+
 /*	Sizes & limits *
  *	============== */
 
@@ -42,6 +49,13 @@ typedef uint64_t currency_t;
 #define sprint_currency(_Buffer, _CurrencyValue)	sprintf(_Buffer, "%0" CURRENCY_REPR_SIZE ".2lf", ((double) _CurrencyValue) / ((double) 100.0))
 #define print_currency(_CurrencyValue)				fprint_currency(stdout, _CurrencyValue)
 
+
+
+constexpr size_t username_string_length = 64ULL;
+constexpr size_t password_string_length = 64ULL;
+
+typedef char username_string_t[username_string_length];
+typedef char password_string_t[password_string_length];
 
 
 #endif //_COMMONS_HEADER_

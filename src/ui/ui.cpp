@@ -1,6 +1,6 @@
 /*	<src/UI.cpp>
 
-	Where the UI components are defined. */
+	Where the UI screen is defined. */
 
 
 #include <iostream>
@@ -10,32 +10,30 @@
 MenuScreen::MenuScreen(void) : 
 	width(50), height(25), 
 	bg((rgb) { 10, 10, 10 }),
-	fg((rgb) { 175, 175, 175 })
-{
+	fg((rgb) { 175, 175, 175 }) {
 
 }
 
 MenuScreen::MenuScreen(int width, int height) : 
 	width(width), height(height),
 	bg((rgb) { 10, 10, 10 }),
-	fg((rgb) { 175, 175, 175 })
-{
+	fg((rgb) { 175, 175, 175 }){
 
 }
 
 MenuScreen::MenuScreen(int width, int height, rgb bg, rgb fg) : 
-	width(width), height(height), bg(bg), fg(fg)
-{
+	width(width), height(height), bg(bg), fg(fg) {
 	
 }
 
-MenuScreen::~MenuScreen(void)
-{
+MenuScreen::~MenuScreen(void) {
 
 }
 
-void MenuScreen::fill_char(char c) const
-{
+/*	Graphical methods *
+ *	----------------- */
+
+void MenuScreen::fill_char(char c) const {
 	for (int i = 0; i < height; i ++)
 	{
 		for (int j = 0; j < width; j ++)
@@ -45,36 +43,34 @@ void MenuScreen::fill_char(char c) const
 }
 
 
-#define in_range(a, b, x)   (((x) >= (a)) && ((b) >= (x)))
+/*	Standard Interaction Methods *
+ *	---------------------------- */
 
-static inline int64_t to_numeral(const std::string _StringBuffer) {
-	size_t iterator = 0;
-	int64_t sum = 0;
-
-	const char * cstring_buffer = _StringBuffer.c_str();
-	while (cstring_buffer[iterator] && (in_range(48, 57, cstring_buffer[iterator])))
-	{
-		sum *= 10LL;
-		sum += (cstring_buffer[iterator ++] - 48);
-	}
-
-	if (cstring_buffer[iterator])
-		return -1;
-
-	return sum;
+void MenuScreen::clean_stdin(void) {
+	std::cin.clear();
+	std::cin.ignore(INT64_T_MAX, '\n');
 }
 
-bool input_verification(void)
-{
+bool MenuScreen::input_verification(void) {
+	char c = '\0';
+
 	std::cout << "[s/n] ";
-	char c = 0;
+	fflush(stdout);
+
+	/*	keeps scanning until either [s] or [n] are encountered */
 	while ((std::cin >> c) && (c != 's') && (c != 'n'));
+
 	return c == 's';
 }
 
-int64_t input_numeral(void) {
-	std::string string_buffer;
-	std::cin >> string_buffer;
-	return to_numeral(string_buffer);
+void MenuScreen::press_anything_to_continue(void) {
+	char c = '\0';
+
+	std::cout << "[Entre com qualquer tecla para continuar...] ";
+	fflush(stdout);
+
+	std::cin >> c;
+	
+	MenuScreen::clean_stdin();
 }
 

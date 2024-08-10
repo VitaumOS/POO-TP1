@@ -9,40 +9,48 @@
 
 #include "ui.hpp"
 #include "../databases/users-db.hpp"
-#include "../users/user.hpp"
-#include "../users/seller.hpp"
+
+/*  Each import each main user interface... */
+#include "../users/seller.hpp"  
 #include "../users/admin.hpp"
-
-// The steps there will be at login screen.
-typedef enum {
-    LS_NOTHING,
-    LS_ENTERED_USERNAME,
-    LS_ENTERED_PASSWORD,
-    LS_REPEATING_PASSWORD,
-    LS_LOGGED
-} LOGIN_STEPS;
+#include "../users/mechanic.hpp"
 
 
+/*  A class representing the login screen for the workshop. 
+    */
 class LoginScreen : virtual public MenuScreen {
 private:
-    class User * user_buffer = nullptr;
-    class SO_Manager * so_manager = nullptr;
-    class Users_DB * users_db = nullptr;
+    /*  State & Data */
+    class UserScreen * user_buffer = nullptr;   //
+    class SO_Manager * so_manager = nullptr;    //
+    class UsersDatabase * users_db = nullptr;   //
 
-    std::string username_buffer;
-    std::string password_buffer;
+    std::string username_buffer;                //
+    std::string password_buffer;                //
 
-    bool login_loop = true;
+    bool login_loop = true;                     //
 
-    bool capture_credentials(void);
-    int render(void);
-
+    /*  Verifies brutely the initialization state of the screen's arguments:
+        raises errors if some database isn't on a valid state. */
     void check_databases(void);
+
+    /*  Attempts capturing the username and password from the user.
+        Returns false either when stdin is interrupted or credentials won't match
+        at the database; in both the login couldn't succeed.
+        In case of success, loads a class instance of User at user_buffer. */
+    bool capture_credentials(void);
+
+    int render(void) override;
+
 public:
-    LoginScreen(class SO_Manager * const so_manager, class Users_DB * const users_db);
-    LoginScreen(int w, int h, class SO_Manager * const so_manager, class Users_DB * const users_db);
+    LoginScreen(class SO_Manager * const so_manager, class UsersDatabase * const users_db);
+    LoginScreen(int w, int h, class SO_Manager * const so_manager, class UsersDatabase * const users_db);
     virtual ~LoginScreen(void);
+
     virtual int interact(void);
+
+    /*  Calls the interaction of the User buffer.
+        Raises an error in case no User object is loaded. */
     int user_interact(void);
 };
 

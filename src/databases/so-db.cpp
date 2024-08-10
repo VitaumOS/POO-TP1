@@ -28,7 +28,7 @@ SO_Manager::SO_Manager(void) : Database(SODB_filename, sizeof(first_active) + si
 		}
 	}
 
-	std::cout << "Initial SO-DB state:" << std::endl;
+	std::cout << "Estado inicial SO-DB:" << std::endl;
 	print_database();
 }
 
@@ -36,17 +36,17 @@ SO_Manager::~SO_Manager(void) {
 	if (stream == nullptr)	
 		return;
 
-	std::cout << "Final SO-DB state:" << std::endl;
+	std::cout << "Estado final SO-DB:" << std::endl;
 	print_database();
 
 	if (! SO_Manager::update_stream_header())
-		std::cerr << "Stream header couldn't be written at SO_Manager." << std::endl;
+		std::cerr << "O cabeçalho do stream não pôde ser gravado no objeto de classe <Database>." << std::endl;
 
 	finalize_stream();
 }
 
 bool SO_Manager::reset_database(void) {
-	std::cerr << "Reseting SO database." << std::endl;
+	std::cerr << "Resetando o SO database." << std::endl;
 
 	item_qtt = 0;
 	first_active = 0;
@@ -93,22 +93,24 @@ bool SO_Manager::new_order(const char issue[SO_DESCRIPTION_SIZE], const client_i
 	while (issue[i ++] && (i <= 4));
 	if (i < 4)
 	{
-		fprintf(stderr, "[%s] (false): Issue description doesn't have even 4 valid characters (%d)...\n",
+		fprintf(stderr, "[%s] (falso): A descrição do problema não tem nem 4 caracteres válidos (%d)...\n",
 			__func__, i);
 		return false;
 	}
 
 	// Validating the SO's client's ID.
 	int64_t client_pos;
-	if ((client_pos = client_manager.fetch_client_id(client_id)) < 0)
+	struct ClientData client_buffer;
+
+	if ((client_pos = client_manager.fetch_client_id(client_id, client_buffer)) < 0)
 	{
-		fprintf(stderr, "[%s] (false): Client's ID (%llu) is inexistent.\n", __func__, client_id.id);
+		fprintf(stderr, "[%s] (falso): O ID do cliente (%llu) é inexistente.\n", __func__, client_id.id);
 		return false;
 	}
 
 	Date date_of_now;
 	if (! get_date(date_of_now)) {
-		fprintf(stderr, "[%s] (false): Couldn't get date.\n", __func__);
+		fprintf(stderr, "[%s] (falso): Não conseguiu pegar a data.\n", __func__);
 		return false;
 	}
 
@@ -131,14 +133,14 @@ bool SO_Manager::new_order(const char issue[SO_DESCRIPTION_SIZE], const client_i
 
 	if (write_element(item_qtt, &so))
 	{
-		fprintf(stderr, "[%s] Apparently could write element #%llu\n", __func__, item_qtt);
+		fprintf(stderr, "[%s] Aparentemente conseguiu escrever o elemento #%llu\n", __func__, item_qtt);
 		++ item_qtt;
 		// ++ item_qtt;
 		* return_so = so;
 		return true;
 	}
 
-	fprintf(stderr, "[%s] (false): Couldn't write new-order.\n", __func__);
+	fprintf(stderr, "[%s] (false): Não conseguiu escrever uma nova ordem.\n", __func__);
 	return false;
 }
 
@@ -190,7 +192,7 @@ bool SO_Manager::budget_order(const so_id_t id, const struct PartsBudget & parts
 		return true;
 	}
 
-	fprintf(stderr, "[%s] Couldn't update SO.\n", __func__);
+	fprintf(stderr, "[%s] Não conseguiu upar o <SO>.\n", __func__);
 	return false;
 }
 
@@ -230,7 +232,7 @@ bool SO_Manager::operate_order(const so_id_t id, struct ServiceOrder * return_so
 		return true;
 	}
 
-	fprintf(stderr, "[%s] Couldn't update SO.\n", __func__);
+	fprintf(stderr, "[%s] Não conseguiu upar o <SO>.\n", __func__);
 	return false;
 }
 
@@ -269,7 +271,7 @@ bool SO_Manager::close_order(const so_id_t id, struct ServiceOrder * return_so)
 		return true;
 	}
 
-	fprintf(stderr, "[%s] Couldn't update SO.\n", __func__);
+	fprintf(stderr, "[%s] Não conseguiu upar o <SO>.\n", __func__);
 	return false;
 
 }
@@ -313,9 +315,7 @@ bool SO_Manager::advance_order(Id_t id, const struct ServiceOrder * src_so)
 	return false;
 }
 
-/*
-
-*/
+/*	(...) */
 bool SO_Manager::get_order(Id_t id, struct ServiceOrder * return_so) const
 {
 	if (id >= item_qtt)
@@ -325,16 +325,33 @@ bool SO_Manager::get_order(Id_t id, struct ServiceOrder * return_so) const
 }
 
 /*  Lists all SOs in the database that fits a certain stage category. */
-std::list<struct ServiceOrder> SO_Manager::so_category(SERVICE_ORDER_STAGE category) {
-	if (category == SO_ALL)
+std::list<struct ServiceOrder> SO_Manager::so_category(SERVICE_ORDER_STAGE category) const
+{
+	if (category == SO_ALL)	/* SO_ALL implies in taking every and single one SO from the database... */
 		return Database::list_filter([](const struct ServiceOrder &) { return true; }, 0, ((size_t) - 1));
 	
 	return Database::list_filter([=](const struct ServiceOrder & so) { return so.stage == category; }, 0, ((size_t) -1));
 }
 
-/*
+/*  Lists all SOs in the database from a given client. */
+std::list<struct ServiceOrder> SO_Manager::so_client(const struct ClientData & client_data) const
+{
+	return Database::list_filter(
+		[client_data](const struct ServiceOrder & so) {
+			return so.client_id == client_data.id;
+		}, 0, ((size_t) - 1));
+}
 
-*/
+/*  Lists all SOs in the database from a given person. */
+std::list<struct ServiceOrder> SO_Manager::so_person(const Id_t & person_id) const
+{
+	return Database::list_filter(
+		[person_id](const struct ServiceOrder & so) {
+			return person_id == so.client_id.person_id;
+		}, 0, ((size_t) - 1));
+}
+
+/*	(...) */
 std::ostream & operator<<(std::ostream & stream, const struct ServiceOrder & so)
 {
 	// ID.
@@ -361,7 +378,7 @@ std::ostream & operator<<(std::ostream & stream, const struct ServiceOrder & so)
 	// The dates.
 	stream << " +" << so.creation_date << " *" << so.update_date << " | ";
 
-	// Client-ID.
+	// ClientData-ID.
 	stream << so.client_id << ", ";
 
 	// Budgeting.
@@ -412,15 +429,15 @@ inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder 
 #if 0
 size_t SO_Manager::print_vpage(size_t vpage_index, size_t focus_index)
 {
-	constexpr size_t vpage_size = 10;
-	size_t index = vpage_size * vpage_index;
+	constexpr size_t page_size = 10;
+	size_t index = page_size * vpage_index;
 
 	if (index >= item_qtt)	// exceeded
 		return 0;
 
-	struct ServiceOrder so_buffer[vpage_size];
+	struct ServiceOrder so_buffer[page_size];
 
-	size_t qtt_read = read_elements(index, vpage_size, so_buffer);
+	size_t qtt_read = read_elements(index, page_size, so_buffer);
 	size_t iterator = 0;
 	for (; iterator < qtt_read; iterator ++)
 	{
@@ -440,7 +457,7 @@ size_t SO_Manager::print_vpage(size_t vpage_index, size_t focus_index)
 		}
 	}
 
-	while (iterator < vpage_size) {
+	while (iterator < page_size) {
 		fprintf(stdout, "[%03llu] ", index + (iterator ++));
 		print_n_char('-', 3);
 		printf(" / * / ");
@@ -456,7 +473,7 @@ void SO_Manager::so_vizualizer(void)
 	cmd_input_buffer.clear();
 	cmd_output_buffer.clear();
 	
-	const size_t vpage_index_max = item_qtt / vpage_size;
+	const size_t vpage_index_max = item_qtt / page_size;
 
 	while (running_menu) {
 		/*	Rendering: header */
@@ -467,8 +484,8 @@ void SO_Manager::so_vizualizer(void)
 		print_n_char('\n', 2);
 
 		printf("Page: #%03llu\n", vpage_index);
-		fprintf(stdout, "SO-ID\tSTATE\t\tCREATION DATE\tUPDATE DATE\t\n");
-		vpage_item_qtt = SO_Manager::print_vpage(vpage_index, focus_index);
+		fprintf(stdout, "SO-ID\tESTADO\t\tDATA DE CRIAÇÃO\tDATA DO UPDATE\t\n");
+		last_qtt_read = SO_Manager::print_vpage(vpage_index, focus_index);
 
 		/*	Rendering: footer */
 		SO_Manager::render_footer();

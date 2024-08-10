@@ -2,53 +2,50 @@
 
 */
 
-#define ACTIVE_SELLER true
-#if ACTIVE_SELLER
-
 
 #ifndef _SELLER_HEADER_
 #define _SELLER_HEADER_
 
 
 #include "../databases/so-db.hpp"
-#include "../ui/so-vizualizer.hpp"
+#include "../ui/db-vizualizers.hpp"
 #include "user.hpp"
 
 
-enum REGISTERCLIENT {
-    REGISTERCLIENT_SUCCESS,
-    REGISTERCLIENT_ALREADY_EXIST,
-    REGISTERCLIENT_CANCEL,
-    REGISTERCLIENT_FAIL
-};
+class Seller: public UserScreen {
+private:    /*  Context buffers */
 
-class Seller: public User {
-private:
-    bool client_is_loaded;
-    bool so_is_loaded;
+    bool client_is_loaded = false;
+    struct ClientData client_buffer;
+    std::list<struct ClientData> all_client_data;       // a list representing all associated data with a person...
+    size_t focus_index = 0LLU;
 
-    struct Client client_buffer;
+    bool so_is_loaded = false;
     struct ServiceOrder so_buffer;
 
+private:
     class SO_Vizualizer so_vizualizer;
 
-    bool LoadClient(void);
+    bool load_client(const char name[NAME_SIZE]);
+    bool load_client_interface(void);
 
-    void display_interaction_guide(void) const;
-
-    enum REGISTERCLIENT register_client_menu();
-    bool generate_so_menu();
+    void register_client(void);
+    void new_so(void);
     void approve_menu();
     void close_menu(void);
 
+    void manage_sos(void);
+
+    int render(void);
+    int process(void);
+
 public:
-    Seller(Id_t id, SO_Manager * so_manager);
+    Seller(class SO_Manager * const, class UsersDatabase * const, const struct MinimalUserData &);
     virtual ~Seller(void);
 
-    void interact(void);
+    bool get_client(struct ClientData & client_buffer);
 };
 
 
 #endif // _SELLER_HEADER_
 
-#endif

@@ -32,9 +32,11 @@ __attribute__((always_inline)) inline currency_t hash_piece_price(const PIECE_ID
     return 0;
 }
 
+#define PIECE_MAX   PIECE_CAR_HEADLIGHT
+
 
 /*  (...) */
-struct Vehicle {
+struct VehicleData {
     char type[NAME_SIZE];
     char model[NAME_SIZE];
     int mileage;

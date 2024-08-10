@@ -2,8 +2,6 @@
 
     Declares the client's database. */
 
-/*	Last update: 20/07/2024. */
-
 
 #ifndef _CLIENTS_DB_HPP_INCLUDED_
 #define _CLIENTS_DB_HPP_INCLUDED_
@@ -12,6 +10,7 @@
 #include "../headers/vehicle.h"
 #include "../headers/date.hpp"
 #include "databases.hpp"
+#include <string.h>
 
 
 constexpr c_filepath people_DB_filename = "data/persons.bin"; // TODO
@@ -36,57 +35,66 @@ typedef union {
     };
 } client_id_t;
 
-/*  Represents a Client.
-
-    Here, "client" doesn't refer only to the person associated with it,
-    but rather to it AND his vehicle. */
-struct Client {
-    client_id_t id; // Client's ID.
-
-    // Client-associated person's name.
-    // TODO: struct Person to contain it. (Scalability)
+struct PersonData {
     char name[NAME_SIZE];
+};
+
+
+inline bool operator==(const struct PersonData & x, const struct PersonData & y) { return ! strcmp(x.name, y.name); }
+inline bool operator==(const client_id_t & x, const client_id_t & y) { return x.id == y.id;  }
+
+/*  Represents a client's data on its database. */
+struct ClientData {
+    client_id_t id; // ClientData's ID.
+
+    struct PersonData person;   // The client's associated person's data.
     
-    // Client-associated vehicle's information.
-    struct Vehicle vehicle;
+    // uint8_t vehicle_qtt = (unsigned char) 0;
+    // struct VehicleData vehicle[VEHICLES_PER_PERSON]; 
+    struct VehicleData vehicle; // The client's associated vehicle's data.
+
+    /*  metadata */
 
     // The date at which the client was registered in the database.
     Date registry_date;
+
+    /*  navigation data */
+    int64_t previous    = - 1LL;
+    int64_t next        = - 1LL;
 };
 
 /*  A homogeneous database for the clients. */
-class ClientsManager : virtual public Database <struct Client> {
+class ClientsManager : virtual public Database <struct ClientData> {
 private: 
     friend class SO_Manager;
+    friend class Seller;
        
     /*  Stream-header */
-    Id_t next_id;   // The next sequential person ID to be filled on the database.
+    Id_t next_id = 0;   // The next sequential person ID to be filled on the database.
 
     bool reset_database(void);
-    bool retrieve_stream_header(void);
+    bool retrieve_stream_header(void) override;
     bool update_stream_header(void) const;
 
-    inline void fprint_element(FILE * _OutputStream, const struct Client *) const;
+    inline void fprint_element(FILE * _OutputStream, const struct ClientData *) const;
 
+    int64_t fetch_person(const struct PersonData &, struct ClientData &, size_t _From = 0) const;
+    int64_t fetch_client_id(const client_id_t &, struct ClientData &, size_t _From = 0) const;
+    
 public:
     ClientsManager(void);
     ~ClientsManager(void);
     
-    bool register_client(const char name[NAME_SIZE], const struct Vehicle vehicle, struct Client * const return_client, Id_t person_id = ((Id_t) - 1));
+    bool register_client(const struct PersonData & person, const struct VehicleData & vehicle, struct ClientData & return_client);
 
     // Returns what should be the next person's id on the client's database sequence.
     inline uint64_t get_next_person_id(void) const { return next_id; };
 
-    bool get_client(const client_id_t & c_id, struct Client * const return_client);
+    bool get_client(const client_id_t & c_id, struct ClientData &);
+    bool get_client(char person_name[NAME_SIZE], struct ClientData &);
 
-    /*	Returns the index of first occurrence of the person's id on the database, from a given
-    starting index (_From).
-        The return is (-1) in case of not founding; and (-2) in case of IO errors. */
-    int64_t fetch_person_id(Id_t person_id, size_t _From = 0) const;
-    int64_t fetch_client_id(const client_id_t & client_id_t, size_t _From = 0) const;
-    
-    int64_t fetch_person_name(const char person_name[NAME_SIZE], size_t _From = 0) const;
-    int64_t fetch_person_name(const char person_name[NAME_SIZE], struct Client *, size_t _From = 0) const;
+    std::list<struct ClientData> get_person_clients(const PersonData &);
+    std::list<struct ClientData> get_person_clients(const char name[NAME_SIZE]);
 };
 
 

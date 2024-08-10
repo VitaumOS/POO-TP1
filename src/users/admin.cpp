@@ -1,13 +1,15 @@
 
 
-
 #include "admin.hpp"
+#include "../ui/db-vizualizers.hpp"
 #include <string>
 
-//Construtor do Admnistrador
-Administrator::Administrator(Id_t id, SO_Manager * so_manager, Users_DB * users_db) 
-    : User(id, so_manager), users_db(users_db) {
 
+// Construtor do Admnistrador
+Administrator::Administrator(class SO_Manager * const so_manager, class UsersDatabase * const users_db, 
+    const struct MinimalUserData & user_data) : UserScreen(so_manager, users_db, user_data) {
+
+    UserScreen::menu_title = "Menu de Administrador";
 }
 
 // Destrutor do Admnistrador
@@ -15,36 +17,11 @@ Administrator::~Administrator(void) {
 
 }
 
-//Função que registra um novo vendedor. Retorna true se conseguir e falso caso contrário
-bool Administrator::Register_Data_Seller(username_string_t username,
-    password_string_t password) { 
 
-    if (! users_db->register_user(USER_TYPE_SLR, username, password))
-        return false; 
-    return true;
-}
-
-// Função que atualiza as informações de um vendedor já existente. Retorna true se conseguir e falso caso contrário
-bool Administrator::Update_Data_Seller(username_string_t username,
-    password_string_t password) { 
-
-    struct UserData user_data;
-    if (users_db->fetch_username(username, &user_data) >= 0){
-
-        cout << "Digite o novo usuário e senha do vendedor \" " << username<< "\"";
-        cin >> username >> password;
-
-        /*
-        update_db(user);  TODO: fazer essa função que atualiza a informação de um usuário (usuário e senha)
-        */
-    }
-}
-
-
+#if 0
 // Função que define o menu para a criação/alteração do vendedor pelo Admnistrador
 void Administrator::edit_seller(void) { 
     int option = 0;
-#if 0
     username_string_t username[username_string_length];
     password_string_t password[password_string_length];
 
@@ -91,7 +68,6 @@ void Administrator::edit_seller(void) {
             break;
         }
     }
-#endif
 }
 
 //Função que registra um novo Mecânico. Retorna true se conseguir e falso caso contrário
@@ -109,7 +85,7 @@ bool Administrator::Update_Data_Mechanic(username_string_t username,
     password_string_t password) { 
 
     struct UserData user_data;
-    if (users_db->fetch_username(username, &user_data) >= 0){
+    if (users_db->fetch_username(username, user_data) >= 0){
 
         cout << "Digite o novo usuário e senha do Mecânico \" "<< username<<"\"";
         cin >> username >> password;
@@ -118,11 +94,10 @@ bool Administrator::Update_Data_Mechanic(username_string_t username,
         update_db(user);  TODO: fazer essa função que atualiza a informação de um usuário (usuário e senha)
         */
     }
-        
+    return false;
 }
 
 void Administrator::edit_mechanic(void) { // Função que define o menu para a criação/alteração do mecânico pelo Admnistrador
-#if 0    
     int option;
     do{
         cout<< "Qual alteração você deseja fazer?"<<endl;
@@ -164,7 +139,6 @@ void Administrator::edit_mechanic(void) { // Função que define o menu para a cri
             break;
         }
     }while(option!=2);
-#endif
 }
 
 bool Administrator::Register_New_Admin(username_string_t username, password_string_t password) {
@@ -182,61 +156,62 @@ void Administrator::edit_admin(void){
     
     cout << "Digite o usuário e senha do novo Administrador: ";
     cin >> username >> password;
-    if(!Register_New_Admin(username, password))
+    if(! Register_New_Admin(username, password))
         cout << "Erro ao criar o Administrador!"<<endl;
     else
         cout  << "Administrador criado com sucesso!"<<endl;
 }
+#endif
 
-// Menu geral do administrador
-void Administrator::interact(void) { 
+int Administrator::render(void)
+{
+    clean_screen();
+
+    /*  header */
+    UserScreen::render_menu_header();
+
+    /*  footer */
+    constexpr const char * footer_title = "O que desejas fazer?";
+    print_n_char('-', literal_string_length(footer_title) - 1);
+    std::cout << std::endl << footer_title << std::endl;
+    std::cout << "1\t->\tSair" << std::endl;
+    std::cout << "2\t->\tGerenciar usuários" << std::endl;
+
+    fflush(stdout);
+    return 0;
+}
+
+int Administrator::process(void)
+{
     int option = -1;
-    
-    bool running_menu = true;
-    while (running_menu) {
-        cout << "O que desejas fazer?" << endl;
-        cout << "0\t->\tSair;" << endl;
-        cout << "1\t->\tGerenciar Vendedores;" << endl;
-        cout << "2\t->\tGerenciar Mecânicos;" << endl;
-        cout << "3\t->\tGerenciar Administradores;" << endl;
-        cout << "4\t->\tGerenciar usuários" << endl;
-        
-        cin >> option;
-        cin.clear();
-        cin.ignore(INT64_T_MAX, '\n');
+    std::cin >> option;
+    MenuScreen::clean_stdin();
 
-        switch (option) {
+    switch (option) {
         /*  Exit */
-        case 0: 
-            running_menu = false;
-            break;
-        
-        case 1:
-            Administrator::edit_seller();
-            break;
+    case 1:
+        UserScreen::main_loop = false;
+        break;
 
-        case 2: 
-            Administrator::edit_mechanic();            
-            break;
+    case 2:
+        Administrator::edit_users();
+        break;
 
-        case 3:
-            Administrator::edit_admin();
-            break;
-
-        case 4:
-            Administrator::edit_users();
-            break;
-            
-        default:
-            /*  Invalid input... */
-            break;
-        }
+    default:
+        /*  Invalid input... */
+        break;
     }
+    return 0;
 }
 
 void Administrator::edit_users(void)
 {
+    struct UserData self;
 
+    // TODO: add more control and prevention at this fetching...?
+    users_db->fetch_userid(user_data.id, self);
 
+    UsersEditor edit_users_menu(users_db, self);
+    edit_users_menu.interact();
 }
 
