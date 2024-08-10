@@ -46,6 +46,12 @@ void DatabaseInterface::process_io(void)
 			if (page_index < page_index_max) {
 				++ page_index;
 				load_page();
+
+				if (focus_index >= last_qtt_read)
+				{
+					focus_index = last_qtt_read - 1;
+				}
+
 			}
 			else {
 				cmd_output_buffer += "* Não há página anterior para mostrar.\n";
