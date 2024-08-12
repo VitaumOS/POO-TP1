@@ -42,14 +42,17 @@ private:
 
     void render_invalid_credentials(void) const;
 
-    int render(void) override;
-
+    int render(void) const override;
+    int process(void) override {
+        return 0;
+    }
+         
 public:
     LoginScreen(class SO_Manager * const so_manager, class UsersDatabase * const users_db);
     LoginScreen(int w, int h, class SO_Manager * const so_manager, class UsersDatabase * const users_db);
     virtual ~LoginScreen(void);
 
-    virtual int interact(void);
+    virtual int interact(void) override;
 
     /*  Calls the interaction of the User buffer.
         Raises an error in case no User object is loaded. */

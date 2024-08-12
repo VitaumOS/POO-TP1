@@ -17,7 +17,7 @@ private:
 	bool altered = false;
 	std::string feedback_err_buffer;
 
-	int render(void) override {
+	int render(void) const override {
 		clean_screen();
 
 		// header
@@ -171,7 +171,7 @@ private:
 	bool altered = false;
 	std::string feedback_err_buffer;
 
-	int render(void) override {
+	int render(void) const override {
 		clean_screen();
 
 		// header
@@ -266,6 +266,16 @@ public:
 };
 
 
+Mechanic::Mechanic(class SO_Manager * const so_manager, class UsersDatabase * const users_db,
+	const struct MinimalUserData & user_data) : UserScreen(so_manager, users_db, user_data) {
+	
+	constexpr const char * title = "Menu de Mecânico";
+	UserScreen::menu_title = const_cast<char *> (title);
+}
+
+Mechanic::~Mechanic(void) {
+
+}
 
 void Mechanic::budget(void)
 {
@@ -279,4 +289,47 @@ void Mechanic::maintenance(void)
 	maintenance_so_editor.interact();
 }
 
+int Mechanic::render(void) const
+{
+	clean_screen();
+
+	/*  header */
+	UserScreen::render_menu_header();
+
+	/*  footer: interaction guide */
+	constexpr const char * footer_title = "O que desejas fazer?";
+	print_n_char('-', literal_string_length(footer_title) - 1);
+	std::cout << std::endl << footer_title << std::endl;
+	std::cout << "1\t->\tSair" << std::endl;
+	std::cout << "2\t->\tFazer orçamento de uma SO" << std::endl;
+	std::cout << "3\t->\tConcluir a manutenção de uma SO" << std::endl;
+
+	fflush(stdout);
+	return 0;
+}
+
+int Mechanic::process(void)
+{
+	int opcao;
+	std::cin >> opcao;
+	clean_stdin();
+
+	switch (opcao) {
+	case 1: // Exiting the menu
+		UserScreen::main_loop = false;
+		break;
+
+	case 2: // Registering a new client
+		Mechanic::budget();
+		break;
+
+	case 3:
+		Mechanic::maintenance();
+		break;
+
+	default:
+		break;
+	}
+	return 0;
+}
 

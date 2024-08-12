@@ -9,7 +9,8 @@
 Administrator::Administrator(class SO_Manager * const so_manager, class UsersDatabase * const users_db, 
     const struct MinimalUserData & user_data) : UserScreen(so_manager, users_db, user_data) {
 
-    UserScreen::menu_title = "Menu de Administrador";
+    constexpr const char * title = "Menu de Administrador";
+    UserScreen::menu_title = const_cast<char *> (title);
 }
 
 // Destrutor do Admnistrador
@@ -163,7 +164,7 @@ void Administrator::edit_admin(void){
 }
 #endif
 
-int Administrator::render(void)
+int Administrator::render(void) const
 {
     clean_screen();
 

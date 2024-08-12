@@ -31,8 +31,8 @@ protected:
     void render_menu_header(void) const;
 
 protected:  /*  pure virtual methods  */
-    virtual int render(void)    = 0;
-    virtual int process(void)   = 0;
+    virtual int render(void) const  = 0;
+    virtual int process(void)       = 0;
 
 public:
     UserScreen(class SO_Manager * const, class UsersDatabase * const, const struct MinimalUserData &);

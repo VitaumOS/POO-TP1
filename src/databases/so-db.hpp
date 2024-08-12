@@ -38,6 +38,7 @@ typedef enum _SOS {
     SO_CANCELED,        // Closed SO. SO closed from "open" state.
     SO_CLOSED_BUDGET,   // Closed SO. SO closed from "budget" state.
     SO_ALL,
+    SO_UNDEF,
 } SERVICE_ORDER_STAGE;
 
 typedef Id_t so_id_t;

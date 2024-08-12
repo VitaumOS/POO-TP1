@@ -31,13 +31,24 @@ private:
         aec_crs_right((width - 8) >> 1);
     }
     
+    int render(void) const override {
+        return 1;
+    }
+
+    int process(void) override {
+        return 1;
+    }
+
+
 public:
     MainScreen(void) { 
         width = 100;
         height = 30;
     }
 
-    ~MainScreen(void) { }
+    ~MainScreen(void) { 
+        
+    }
 
     int interact(void)
     {

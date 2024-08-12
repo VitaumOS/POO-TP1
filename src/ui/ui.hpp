@@ -162,18 +162,12 @@ protected:
 	/*	Renders the screen. 
 		By standard, the return-code is 0 in case of success.
 		Shall be overwritten hierarchically. */
-	virtual int render(void) {
-		aec_clean();
-		std::cout << "\n\t\tBLANK UNDEFINED SCREEN\n\n\n";
-		return -1;
-	}
+	virtual int render(void) const = 0;
 
 	/*	Processes the input on stdout. 
 		By standard, the return-code is 0 in case of success.
 		Shall be overwritten hierarchically. */
-	virtual int process(void) { 
-		return -1; 
-	}
+	virtual int process(void) = 0;
 
 public:
 	MenuScreen(void);
@@ -184,9 +178,7 @@ public:
 	/*	Interacts with the screen. Represents the driver call for menu loop.
 		By standard, the return-code is 0 in case of success.
 		Shall be overwritten hierarchically. */
-	virtual int interact(void) { 
-		return -1; 
-	}
+	virtual int interact(void) = 0;
 };
 
 

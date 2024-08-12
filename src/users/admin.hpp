@@ -19,8 +19,8 @@ private:
     
     void edit_users(void);
     
-    int render(void);
-    int process(void);
+    int render(void) const override;
+    int process(void) override;
 
 public:
     Administrator(class SO_Manager * const, class UsersDatabase * const, const struct MinimalUserData &);

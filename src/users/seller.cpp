@@ -17,7 +17,7 @@ private:
     std::string feedback_err_buffer;
     bool positive_highlight = false;
 
-    int render(void) override {
+    int render(void) const override {
         clean_screen();
 
         // header
@@ -304,6 +304,41 @@ public:
     }
 };
 
+class ClientSO_HistoryVizualizer : virtual public SO_Vizualizer {
+private:
+    struct ClientData client_data;
+
+    void render_footer(void) const override {
+        print_n_char('\n', 2);
+        print_n_char('-', 10); putchar('\n');
+        std::cout << "\tw:\tItem anterior\n";
+        std::cout << "\ts:\tProximo item\n";
+        std::cout << "\ta:\tPagina anterior\n";
+        std::cout << "\td:\tProxima pagina\n";
+        std::cout << "\tq:\tSair do visualizador\n";
+        print_n_char('=', 50);
+        print_n_char('\n', 2);
+    }
+    
+    void inspect(void) override {
+        
+    }
+
+public:
+    ClientSO_HistoryVizualizer(class SO_Manager * const so_manager,
+        const struct ClientData & client_data) :
+        SO_Vizualizer(so_manager) {
+        
+        set_category(SO_UNDEF);
+
+        SO_Vizualizer::SOs = so_manager->so_client(client_data);
+        strcpy(SO_Vizualizer::base_title_name, "Histórico de SOs de Cliente");
+    }
+
+    ~ClientSO_HistoryVizualizer(void) {
+
+    }
+};
 
 
 
@@ -323,7 +358,7 @@ Seller::~Seller(void) {
 
 }
 
-int Seller::render(void) 
+int Seller::render(void) const
 {
     clean_screen();
 
@@ -356,7 +391,8 @@ int Seller::render(void)
     std::cout << "1\t->\tSair" << std::endl;
     std::cout << "2\t->\tRegistrar um cliente" << std::endl;
     std::cout << "3\t->\tCarregar um cliente" << std::endl;
-    std::cout << "4\t->\tNavegar sobre ordens de servico" << std::endl;
+    std::cout << "4\t->\tVizualizer histórico do cliente" << std::endl;
+    std::cout << "5\t->\tNavegar sobre ordens de servico" << std::endl;
 
     fflush(stdout);
     return 0;
@@ -393,6 +429,10 @@ int Seller::process(void)
         break;
 
     case 4:
+        Seller::show_so_history();
+        break;
+
+    case 5:
         Seller::manage_sos();
         break;
 
@@ -400,6 +440,23 @@ int Seller::process(void)
         break;
     }
     return 0;
+}
+
+void Seller::show_so_history(void) {
+    if (! Seller::client_is_loaded)
+    {
+        std::cout << "É necessário, para tanto, carregar um cliente primeiramente...\n";
+        std::cout << "Deseja carregar um cliente? ";
+        if (input_verification()) {
+            clean_stdin();
+            Seller::load_client_interface();
+        }
+        
+        return;
+    }
+
+    ClientSO_HistoryVizualizer history_vizualizer(so_manager, client_buffer);
+    history_vizualizer.interact();
 }
 
 // * updated
@@ -413,20 +470,20 @@ void Seller::register_client(void) {
     std::cin.getline(client_buffer.person.name, NAME_SIZE);
     
     if (Seller::load_client(client_buffer.person.name)) {
-        std::cout << "Ocorr�ncia da pessoa <" << client_buffer.person.name << "> encontrada no banco de dados de clientes ("
+        std::cout << "Ocorrência da pessoa <" << client_buffer.person.name << "> encontrada no banco de dados de clientes ("
             << all_client_data.size() << ") clientes." << std::endl;
     }
 
     /*  vehicle's type */
-    std::cout << "Qual � o tipo do ve�culo (Ex: carro, moto, etc...)?\t";
+    std::cout << "Qual é o tipo do ve�culo (Ex: carro, moto, etc...)?\t";
     std::cin.getline(client_buffer.vehicle.type, NAME_SIZE);
     
     /*  vehicle's model */
-    std::cout << "Qual � o modelo do ve�culo?\t\t\t\t";
+    std::cout << "Qual é o modelo do ve�culo?\t\t\t\t";
     std::cin.getline(client_buffer.vehicle.model, NAME_SIZE);
 
-    /*  vehicl's mileage */
-    std::cout << "Qual � a quilometragem do seu ve�culo?\t\t\t";
+    /*  vehicle's mileage */
+    std::cout << "Qual é a quilometragem do seu veículo?\t\t\t";
     do {
         std::cin >> client_buffer.vehicle.mileage;
         clean_stdin();
@@ -434,8 +491,8 @@ void Seller::register_client(void) {
     } while ((client_buffer.vehicle.mileage < 0) && (std::cout << "Entrada inv�lida para kilometragem. Redigite-a:\t\t"));
 
 
-    // TODO: deixar mei�
-    printf("Pessoa\t| Nome: %-64s;\nVe�culo\t| Modelo: %s, tipo: %s, kilometragem: %d\n",
+    // TODO: deixar meió
+    printf("Pessoa\t| Nome: %-64s;\nVeículo\t| Modelo: %s, tipo: %s, kilometragem: %d\n",
         client_buffer.person.name,
         client_buffer.vehicle.model, client_buffer.vehicle.type, (int) client_buffer.vehicle.mileage);
     
@@ -467,37 +524,6 @@ bool Seller::get_client(struct ClientData & client_buffer) {
     }
     client_buffer = this->client_buffer;
     return true;
-}
-
-// * old
-void Seller::new_so(void) {
-    
-    if ((! client_is_loaded) && (! Seller::load_client_interface())) {
-        std::cout << "Nao foi possivel carregar o cliente.\n";
-        press_anything_to_continue();
-        return;
-    }
-    
-    std::cout << "Qual e o seu problema?\t";
-    std::string issue;
-    std::cin >> issue;
-    issue.resize(SO_DESCRIPTION_SIZE);
-
-    std::cout << "Deseja abrir uma SO para <" << client_buffer.person.name << ">? ";
-
-    if (! input_verification())
-    {
-        std::cerr << "cancl\n";
-        press_anything_to_continue();
-        return;
-    }
-
-    if (! so_manager->new_order(issue.c_str(), client_buffer.id, &so_buffer))
-    {
-        std::cout << "falhow...\n";
-        press_anything_to_continue();
-        return;
-    }
 }
 
 bool Seller::load_client_interface(void) {
@@ -539,7 +565,7 @@ bool Seller::load_client_interface(void) {
     while (vehicles_menu)
     {
         clean_screen();
-        printf("\nSelecao de Cliente\n\n\tPessoa: %s\n\n", person_data.name);
+        printf("\nSeleção de Cliente\n\n\tPessoa: %s\n\n", person_data.name);
 
         the_client_data = static_cast<struct ClientData> (* std::next(all_client_data.begin(), focus_index));
 
@@ -579,5 +605,8 @@ bool Seller::load_client(const char name[NAME_SIZE]) {
     all_client_data = so_manager->client_manager.get_person_clients(name);
     
     Seller::client_is_loaded = all_client_data.size() > 0;
+    if (Seller::client_is_loaded)
+        client_buffer = all_client_data.front();
+
     return Seller::client_is_loaded;
 }

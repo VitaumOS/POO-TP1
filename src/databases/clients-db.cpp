@@ -27,6 +27,7 @@ ClientsManager::ClientsManager(void) : Database(clients_DB_filename, sizeof(item
 		}
 	}
 
+	#if DEBUG_DATABASE_STATE
 	std::cout << "Estado incial do <client database>:" << std::endl;
 	print_database();
 
@@ -34,6 +35,8 @@ ClientsManager::ClientsManager(void) : Database(clients_DB_filename, sizeof(item
 	printf("item-qtt: %llu\n", item_qtt);
 
 	std::cout << "nothing: "; char c; std::cin >> c;
+
+	#endif // DEBUG_DATABASE_STATE
 };
 
 ClientsManager::~ClientsManager(void) {

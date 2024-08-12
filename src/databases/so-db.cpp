@@ -28,8 +28,10 @@ SO_Manager::SO_Manager(void) : Database(SODB_filename, sizeof(first_active) + si
 		}
 	}
 
+	#if DEBUG_DATABASE_STATE
 	std::cout << "Estado inicial SO-DB:" << std::endl;
 	print_database();
+	#endif // DEBUG_DATABASE_STATE
 }
 
 SO_Manager::~SO_Manager(void) {
@@ -327,6 +329,11 @@ bool SO_Manager::get_order(Id_t id, struct ServiceOrder * return_so) const
 /*  Lists all SOs in the database that fits a certain stage category. */
 std::list<struct ServiceOrder> SO_Manager::so_category(SERVICE_ORDER_STAGE category) const
 {
+	if (category == SO_UNDEF) {
+		std::list<struct ServiceOrder> empty_list;
+		return empty_list;
+	}
+
 	if (category == SO_ALL)	/* SO_ALL implies in taking every and single one SO from the database... */
 		return Database::list_filter([](const struct ServiceOrder &) { return true; }, 0, ((size_t) - 1));
 	

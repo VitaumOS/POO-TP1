@@ -7,12 +7,12 @@
 
 
 UserScreen::UserScreen(class SO_Manager * const so_manager, class UsersDatabase * const users_db, const struct MinimalUserData & user_data) :
-	so_manager(so_manager), users_db(users_db), user_data(user_data)
+	user_data(user_data), so_manager(so_manager), users_db(users_db)
 {
 	char string_buffer[64];
 
 	if (so_manager == nullptr) {
-		sprintf(string_buffer, ";Passando SO_Manager inv�lido para o usu�rio (id:%llu) - nullptr.", user_data.id.id);
+		sprintf(string_buffer, "; passando SO_Manager inválido para o usuário (id:%llu) - nullptr.", user_data.id.id);
 
 		throw std::runtime_error(string_buffer);
 	}
@@ -41,11 +41,9 @@ int UserScreen::interact(void)
 
 void UserScreen::render_menu_header(void) const
 {
-	const size_t menu_title_length = 50;
-	print_n_char('=', 50);
+	print_n_char('=', width);
 	printf("\n\t\t%s\n", UserScreen::menu_title);
-	//print_n_char('-', menu_title_length);
-	print_n_char('=', 50);
+	print_n_char('=', width);
 	printf("\n");
 
 	struct _Date date_of_now;
@@ -61,7 +59,6 @@ void UserScreen::render_menu_header(void) const
 	aec_reset();
 		
 	/*	user information */
-	const size_t username_length = strlen(user_data.username);
 	printf("\n\n\nUsuario <%s>:\t[id - %019llu] ", user_data.username, user_data.id.id);
 	aec_bg_rgb(75, 75, 122);
 	aec_reset();

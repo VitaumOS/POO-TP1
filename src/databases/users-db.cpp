@@ -33,9 +33,11 @@ UsersDatabase::UsersDatabase(void) : Database(users_DB_filename, sizeof(item_qtt
             UsersDatabase::reset_database();
         }
     }
-
+    
+    #if DEBUG_DATABASE_STATE
     std::cout << "Initial users database state:" << std::endl;
     print_database();
+    #endif // DEBUG_DATABASE_STATE
 }
 
 UsersDatabase::UsersDatabase(SO_Manager * const so_manager) : UsersDatabase()
@@ -394,11 +396,11 @@ bool UsersDatabase::logout(const user_id_t & id) const {
 
     // if (! user_data.logged) return false;
 
-    struct _Date date_of_now;
-    if (! get_date(date_of_now))
-        return false;
+    // struct _Date date_of_now;
+    // if (! get_date(date_of_now))
+    //     return false;
 
-    struct _Date session_time = date_of_now - user_data.last_login;
+    // struct _Date session_time = date_of_now - user_data.last_login;
     // user_data.last_session_time += session_time;
     // user_data.total_session-time += session_time;
 

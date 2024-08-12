@@ -26,6 +26,11 @@
 #include <functional> 
 
 
+#if ! defined(DEBUG_DATABASE_STATE)
+#	define DEBUG_DATABASE_STATE	false
+#endif // ! defined(DEBUG_DATABASE_STATE)
+
+
 /*	TODO: (Overall description...) 
 *
 *

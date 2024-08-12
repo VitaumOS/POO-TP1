@@ -35,8 +35,8 @@ private:
     std::string cmd_output_buffer;  //
     
     /*  common logical inner methods */
-    void process_io(void);          // 
-    void render_screen(void) const; // 
+    int process(void);          // 
+    int render(void) const; // 
 
 protected:
 
@@ -79,6 +79,8 @@ class SO_Vizualizer : virtual public DatabaseInterface {
 protected:
     class SO_Manager * so_manager;
     std::list<struct ServiceOrder> SOs;
+
+    char base_title_name[64] = "UNDEFINED";
 
 private:
     std::vector<struct ServiceOrder> vpage;

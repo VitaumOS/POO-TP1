@@ -89,7 +89,7 @@ bool LoginScreen::capture_credentials(void) {
     return true;
 }
 
-int LoginScreen::render(void) {
+int LoginScreen::render(void) const {
     clean_screen();
 
     MenuScreen::set_bg();

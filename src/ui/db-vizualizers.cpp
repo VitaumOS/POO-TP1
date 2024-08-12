@@ -18,7 +18,7 @@ DatabaseInterface::~DatabaseInterface(void) {
 void DatabaseInterface::event_n_key(void) { }
 void DatabaseInterface::event_f_key(void) { }
 
-void DatabaseInterface::process_io(void)
+int DatabaseInterface::process(void)
 {
 	char cstring_buffer[16];
 
@@ -109,9 +109,10 @@ void DatabaseInterface::process_io(void)
 			break;
 		}
 	}
+	return 0;
 }
 
-void DatabaseInterface::render_screen(void) const {
+int DatabaseInterface::render(void) const {
 	clean_screen();
 
 	render_header();	/*  rendering the header */
@@ -119,6 +120,7 @@ void DatabaseInterface::render_screen(void) const {
 	render_footer();	/*	rendering the footer */
 
 	fflush(stdout);
+	return 0;
 }
 
 void DatabaseInterface::load_page(void) {
@@ -141,8 +143,8 @@ int DatabaseInterface::interact(void)
 	load_page();
 
 	while (DatabaseInterface::running_menu) {
-		render_screen();	/*	rendering */
-		process_io();		/*	input */
+		render();	/*	rendering */
+		process();		/*	input */
 	}
 	DatabaseInterface::running_menu = true;
 
@@ -262,21 +264,21 @@ inline void SO_Vizualizer::represent_so(const struct ServiceOrder & _SO) const {
 
 void SO_Vizualizer::render_header(void) const
 {
-	constexpr const char * menu_base_title = "SO vizualizer: ";
+	constexpr const char * menu_base_title = "Vizualizador de SOs: ";
 	constexpr size_t title_length = literal_string_length(menu_base_title);
 
 	print_n_char('=', 160); putchar('\n');
 
 	printf("%s ", menu_base_title);
 	switch (category) {
-	case SO_OPEN:				printf("Abrir SOs\n");									break;
-	case SO_BUDGET:				printf("Orcar SOs\n");									break;
-	case SO_MAINTENANCE:		printf("Manutencao SOs\n");								break;
-	case SO_CLOSED:				printf("Fechar os SOs (em manutencao)\n");				break;
-	case SO_CANCELED:			printf("SOs canceladas (fechado depois abrir)\n");		break;
-	case SO_CLOSED_BUDGET:		printf("SOs fechados apos ja terem sidos orcados\n");	break;
-	case SO_ALL:				printf("Todos SOs\n");									break;
-	default:					printf("DESCONHECIDO\n");								break;
+	case SO_OPEN:				printf("SOs abertas\n");										break;
+	case SO_BUDGET:				printf("SOs orçamentadas\n");									break;
+	case SO_MAINTENANCE:		printf("SOs sob manutenção\n");									break;
+	case SO_CLOSED:				printf("SOs fechadas (após manutenção)\n");						break;
+	case SO_CANCELED:			printf("SOs canceladas (fechadas após abertura)\n");			break;
+	case SO_CLOSED_BUDGET:		printf("SOs descontinuadas (fechadas após orçamentadas)\n");	break;
+	case SO_ALL:				printf("Todas as SOs\n");										break;
+	default:					printf("%s\n", base_title_name);								break;
 	}
 
 	print_n_char('*', title_length - 1); putchar('\n');
@@ -307,11 +309,6 @@ void SO_Vizualizer::render_page(void) const
 	printf("Page: #%03llu\n", page_index);
 	fprintf(stdout, "SO-ID\tESTADO\tCLIENT-ID\tHRD\t LBR\t\tDATA DE CRIACAO\t\tDATA UPADA\t\n");
 	
-	const size_t index = page_index * page_size;
-	size_t iterator_limit = page_size;
-	if ((index + page_size) > SOs.size())
-		iterator_limit = SOs.size() - index;
-
 	size_t iterator = 0;
 	for (struct ServiceOrder so : SO_Vizualizer::vpage)
 	{
@@ -407,7 +404,7 @@ private:
 	
 	bool show_password = false;
 
-	int render(void) override {
+	int render(void) const override {
 		clean_screen();
 
 		// header
@@ -454,7 +451,7 @@ private:
 
 		if (! user_data.active)
 		{
-			std::cout << "Voce nao pode alterar o nome de usuario de um usuario inativo no banco de dados...\n";
+			std::cout << "Você não pode alterar o nome de usuário de um usuário inativo no banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		}
@@ -464,7 +461,7 @@ private:
 
 		while (c_username_loop)
 		{
-			std::cout << "Digite o novo nome de usuario: ";
+			std::cout << "Digite o novo nome de usuário: ";
 			std::cin >> new_username_buffer;
 			new_username_buffer.resize(username_string_length);
 
@@ -673,7 +670,7 @@ public:
 	}
 };
 
-UsersEditor::UsersEditor(class UsersDatabase * const users_db, const struct UserData & admin_data) : vpage(page_size), users_db(users_db), admin_data(admin_data) {
+UsersEditor::UsersEditor(class UsersDatabase * const users_db, const struct UserData & admin_data) : users_db(users_db), admin_data(admin_data), vpage(page_size) {
 	if (users_db == nullptr)
 		throw std::runtime_error("Objeto invalido <UsersDatabase> passado para <UsersEditor UI screen>...");
 
@@ -759,10 +756,10 @@ void UsersEditor::represent_userdata(const struct UserData & user_data) const {
 }
 
 void UsersEditor::render_header(void) const {
-	constexpr const char * menu_base_title = "Visualizador de banco de dados de usu�rios";
+	constexpr const char * menu_base_title = "Vizualizador do Banco de Dados de Usuários";
 	constexpr size_t title_length = literal_string_length(menu_base_title);
 
-	print_n_char('=', 160);
+	print_n_char('=', title_length - 1);
 	putchar('\n');
 	putchar('\n');
 }

@@ -30,12 +30,11 @@ private:
     bool load_client_interface(void);
 
     void register_client(void);
-    void new_so(void);
-
     void manage_sos(void);
+    void show_so_history(void);
 
-    int render(void);
-    int process(void);
+    int render(void) const override;
+    int process(void) override;
 
 public:
     Seller(class SO_Manager * const, class UsersDatabase * const, const struct MinimalUserData &);
