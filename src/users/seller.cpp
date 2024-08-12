@@ -357,7 +357,7 @@ int Seller::render(void)
     std::cout << "2\t->\tRegistrar um cliente" << std::endl;
     std::cout << "3\t->\tCarregar um cliente" << std::endl;
     std::cout << "4\t->\tNavegar sobre ordens de servico" << std::endl;
-    
+
     fflush(stdout);
     return 0;
 }
