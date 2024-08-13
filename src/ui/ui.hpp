@@ -19,6 +19,17 @@
 #include <string.h>	// for strcpy
 
 
+// Default screen values
+
+#if ! defined(SWIDTH)
+#   define SWIDTH 100
+#endif
+
+#if ! defined(SHEIGHT)
+#   define SHEIGHT  30
+#endif
+
+
 // Cleaning screen
 // ===============
 

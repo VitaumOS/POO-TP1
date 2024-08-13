@@ -21,9 +21,9 @@ private:
 		clean_screen();
 
 		// header
-		std::cout << "==================================================" << std::endl;
+		print_n_char('=', width); putchar('\n');
 		std::cout << "\t\tBudget SO Editor" << std::endl;
-		std::cout << "==================================================" << std::endl;
+		print_n_char('=', width); putchar('\n');
 
 		// so information
 		printf("\n\n");
@@ -33,8 +33,11 @@ private:
 		// footer
 		print_n_char('\n', 2);
 		print_n_char('-', 50); putchar('\n');
-		std::cout << "\tb:\tOrcar\n";
-		std::cout << "\tq:\tSair da inspecao\n";
+
+		if (so.stage == SO_OPEN)
+			std::cout << "\tb:\tOrçamentar ordem\n";
+
+		std::cout << "\tq:\tSair da inspeção\n";
 		print_n_char('=', 50);
 		print_n_char('\n', 2);
 
@@ -43,22 +46,19 @@ private:
 
 	void budget(void)
 	{
+		/*	the input won't match anymore if the so is once updated... */
 		if (so.stage != SO_OPEN)
-		{
-			std::cout << "A SO nao esta aberta...\n";
-			press_anything_to_continue();
 			return;
-		}
 
 		struct PartsBudget parts;
 		parts.n_pieces = 0;
 
 		int piece_code;
 
-		std::cout << "Entre com os c�digos dos componentes - digite (-1) para sair.\n";
+		std::cout << "Entre com os códigos dos componentes - digite (-1) para sair.\n";
 
 		while (parts.n_pieces < MAX_PIECES) {
-			std::cout << "C�digo do #" << parts.n_pieces + 1 << " componente: " << std::endl;
+			std::cout << "Código do #" << parts.n_pieces + 1 << " componente: " << std::endl;
 			std::cin >> piece_code;
 			std::cin.clear();
 			std::cin.ignore(INT64_T_MAX, '\n');
@@ -175,16 +175,20 @@ private:
 		clean_screen();
 
 		// header
-		std::cout << "Editor de <Manutencao SO>" << std::endl;
-		std::cout << "--------------------------------------------------" << std::endl;
-
-		// user information
+		constexpr const char * title = "Inspeção de SOs sob manutenção";
+		std::cout << title << std::endl;
+		print_n_char('-', literal_string_length(title));
+		
+		// so information
 		printf("\n\n\n");
-		printf("so: ");
+		std::cout << so;
 
 		// footer
 		print_n_char('\n', 2);
 		print_n_char('-', 10); putchar('\n');
+
+		if (so.stage == SO_MAINTENANCE)
+			std::cout << "\tc:\tConcluir manutenção da SO\n";
 
 		std::cout << "\tq:\tSair da inspecao\n";
 		print_n_char('=', 50);
@@ -203,12 +207,37 @@ private:
 			InspectMaintenanceSO::menu_loop = false;
 			break;
 
+		case 'c':
+			InspectMaintenanceSO::close();
+			break;
+
 		default:
 			break;
 		}
 		return 0;
 	}
 
+	void close(void) 
+	{
+		/*	the key won't respond anymore in case of change of states... */
+		if (so.stage != SO_MAINTENANCE)
+			return;
+		
+		std::cout << "Deseja realmente fechar a so #" << so.id << " ? ";
+		if (! input_verification())
+			return;
+
+		if (! so_manager->close_order(so.id, &so))
+		{
+			std::cerr << "Por algum erro no sistema, a ordem #" << so.id << " não pôde ser atualizada apropriadamente..."
+				<< std::endl;
+		}
+		else {
+			std::cout << "Ordem concluída com sucesso." << std::endl;
+			altered = true;
+		}
+		press_anything_to_continue();
+	}
 
 public:
 	InspectMaintenanceSO(class SO_Manager * const so_manager, struct ServiceOrder & so) :
@@ -252,7 +281,7 @@ public:
 		struct ServiceOrder so;
 		SO_Vizualizer::get_service_order(so);
 
-		InspectBudgetSO inspect_budget(so_manager, so);
+		InspectMaintenanceSO inspect_budget(so_manager, so);
 
 		if (inspect_budget.interact() == 0)
 			return;

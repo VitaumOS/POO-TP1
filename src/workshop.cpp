@@ -39,11 +39,16 @@ private:
         return 1;
     }
 
+    void final_screen(void)
+    {
+        aec_reset();
+        aec_clean();
+        std::cout << "Sistema de oficina finalizado com sucesso.\n";
+    }
 
 public:
-    MainScreen(void) { 
-        width = 100;
-        height = 30;
+    MainScreen(int width, int height) : MenuScreen(width, height) { 
+        
     }
 
     ~MainScreen(void) { 
@@ -72,16 +77,19 @@ public:
 
             if (input_verification())   main_loop = false;
         }
-    
+
+        MainScreen::final_screen();
         return 0;
     }
+
 };
 
 /*  NO SPECS DECLARED */
 int main(void) {
     /*  Language setup */
-    setlocale(LC_ALL, "portuguese");
+    // setlocale(LC_ALL, "portuguese")
+    setlocale(LC_ALL, "pt_BR.UTF-8");
     
-    MainScreen m_screen;
+    MainScreen m_screen(100, 30);
     return m_screen.interact();
 }

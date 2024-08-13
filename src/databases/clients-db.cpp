@@ -42,8 +42,10 @@ ClientsManager::ClientsManager(void) : Database(clients_DB_filename, sizeof(item
 ClientsManager::~ClientsManager(void) {
 	if (stream == nullptr)	return;	// the database is already closed.
 
+	#if DEBUG_DATABASE_STATE
 	std::cout << "Estado final do <client database> :" << std::endl;
 	print_database();
+	#endif
 
 	if (! ClientsManager::update_stream_header())
 		std::cerr << "N�o foi poss�vel gravar o cabe�alho do stream em ClientsManager." << std::endl;

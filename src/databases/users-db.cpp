@@ -51,8 +51,10 @@ UsersDatabase::UsersDatabase(SO_Manager * const so_manager) : UsersDatabase()
 UsersDatabase::~UsersDatabase(void) {
     if (stream == nullptr) return; // the database is already closed.
 
+    #if DEBUG_DATABASE_STATE
     std::cout << "Final users database state:" << std::endl;
     print_database();
+    #endif // DEBUG_DATABASE_STATE
 
     if (! UsersDatabase::update_stream_header())
         std::cerr << "Stream header couldn't be written at UsersDatabase." << std::endl;

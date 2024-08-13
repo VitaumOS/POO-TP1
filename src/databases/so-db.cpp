@@ -38,8 +38,10 @@ SO_Manager::~SO_Manager(void) {
 	if (stream == nullptr)	
 		return;
 
+	#if DEBUG_DATABASE_STATE
 	std::cout << "Estado final SO-DB:" << std::endl;
 	print_database();
+	#endif // DEBUG_DATABASE_STATE
 
 	if (! SO_Manager::update_stream_header())
 		std::cerr << "O cabeçalho do stream não pôde ser gravado no objeto de classe <Database>." << std::endl;

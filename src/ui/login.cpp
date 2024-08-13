@@ -20,7 +20,7 @@ void LoginScreen::check_databases(void)
         throw std::runtime_error("Objeto UsersDatabase inv�lido para LoginScreen");
 
     if (! LoginScreen::users_db->could_initialize())
-        throw std::runtime_error("N�o foi poss�vel inicializar o UsersDatabase. Verificado em LoginScreen");
+        throw std::runtime_error("Não foi possível inicializar o UsersDatabase. Verificado em LoginScreen");
 }
 
 LoginScreen::LoginScreen(class SO_Manager * const so_manager,  class UsersDatabase * const users_db) : 
@@ -50,7 +50,7 @@ void LoginScreen::render_invalid_credentials(void) const
 {
     go_to_abs(25 + (MenuScreen::width >> 3), 4 + (MenuScreen::height >> 2));
     set_bg();
-    std::cout << "Credenciais invalidas!" << std::endl;
+    std::cout << "Credenciais inválidas!" << std::endl;
     go_to_abs(25 + (MenuScreen::width >> 3), 5 + (MenuScreen::height >> 2));
 }
 
@@ -106,7 +106,7 @@ int LoginScreen::render(void) const {
     const int username_label_x = MenuScreen::width >> 3;
     const int username_label_y = MenuScreen::height >> 2;
     
-    MenuScreen::pos_string(username_label_x, username_label_y, "Nome de usuario: ");
+    MenuScreen::pos_string(username_label_x, username_label_y, "Nome de usuário: ");
     MenuScreen::pos_string(username_label_x, username_label_y + 1, "Senha: ");
     MenuScreen::to_ending();
     print_n_char('=', width);

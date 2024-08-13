@@ -9,7 +9,7 @@
 class SellerInspectSO : virtual public MenuScreen
 {
 private:
-    class SO_Manager * so_manager;
+    class SO_Manager * so_manager = nullptr;
     struct ServiceOrder so;
 
     bool menu_loop = true;
@@ -21,8 +21,8 @@ private:
         clean_screen();
 
         // header
-        std::cout << "Editor de SOs (Vendedor)" << std::endl;
-        std::cout << "--------------------------------------------------" << std::endl;
+        std::cout << "Inspeção de SOs (Vendedor)" << std::endl;
+        std::cout << "--------------------------" << std::endl;
 
         // so information
         printf("\n\n\n");
@@ -79,25 +79,25 @@ private:
 
         if (so.stage == SO_MAINTENANCE)
         {
-            std::cout << "Somente o mec�nico poder� fechar uma ordem de servi�o sob o estado de manuten��o...\n";
+            std::cout << "Somente o mecânico poderá fechar uma ordem de serviço sob o estado de manutenção...\n";
             press_anything_to_continue();
             return;
         }
-
-        std::cout << "Sobre a SO de id \"" << so.id << "\": deseja realmente cancel�-la? ";
+        
+        std::cout << "Sobre a SO de id \"" << so.id << "\": deseja realmente cancelá-la? ";
         clean_stdin();
 
         if (input_verification())
         {
             if (SellerInspectSO::so_manager->close_order(so.id, &so)) {
                 SellerInspectSO::feedback_err_buffer +=
-                    "A ordem p�de ser fechada com sucesso...";
+                    "A ordem pôde ser fechada com sucesso...";
                 positive_highlight = true;
                 altered = true;
             }
             else {
                 SellerInspectSO::feedback_err_buffer +=
-                    "A ordem n�o p�de ser fechada com sucesso...";
+                    "A ordem não pôde ser fechada com sucesso...";
             }
         }
     }

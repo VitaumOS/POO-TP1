@@ -8,10 +8,9 @@
 
 
 MenuScreen::MenuScreen(void) : 
-	width(50), height(25), 
+	width(SWIDTH), height(SHEIGHT), 
 	bg((rgb) { 10, 10, 10 }),
 	fg((rgb) { 175, 175, 175 }) {
-
 }
 
 MenuScreen::MenuScreen(int width, int height) : 

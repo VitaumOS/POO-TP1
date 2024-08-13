@@ -6,7 +6,8 @@
 #include "user.hpp"
 
 
-UserScreen::UserScreen(class SO_Manager * const so_manager, class UsersDatabase * const users_db, const struct MinimalUserData & user_data) :
+UserScreen::UserScreen(class SO_Manager * const so_manager, class UsersDatabase * const users_db, 
+	const struct MinimalUserData & user_data) :
 	user_data(user_data), so_manager(so_manager), users_db(users_db)
 {
 	char string_buffer[64];
@@ -53,18 +54,18 @@ void UserScreen::render_menu_header(void) const
 	std::cout << date_of_now;
 
 	aec_fg_rgb(150, 150, 200);
-	std::cout << "\t\ttempo de selecao: ";
+	std::cout << "\t\ttempo de uso: ";
 	struct _Date time_active = date_of_now - interaction_begin;
 	printf("%02hhu:%02hhu:%02hhu [h:m:s]\n", time_active.hour, time_active.minutes, time_active.seconds);
 	aec_reset();
 		
 	/*	user information */
-	printf("\n\n\nUsuario <%s>:\t[id - %019llu] ", user_data.username, user_data.id.id);
+	printf("\n\n\nUsuário <%s>:\t[id - %019llu] ", user_data.username, user_data.id.id);
 	aec_bg_rgb(75, 75, 122);
 	aec_reset();
 
 	printf("\n\t\t");
 	print_n_char(' ', 21);
-	//print_n_char('-', username_length);
+	print_n_char('-', strlen(user_data.username));
 	print_n_char('\n', 3);
 }
