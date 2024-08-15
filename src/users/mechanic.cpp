@@ -55,7 +55,7 @@ private:
 
 		int piece_code;
 
-		std::cout << "Entre com os códigos dos componentes - digite (-1) para sair.\n";
+		std::cout << "Entre com os códigos dos componentes (0 à " << PIECE_MAX << ", inclusivo) - digite(-1) para interromper entrada.\n";
 
 		while (parts.n_pieces < MAX_PIECES) {
 			std::cout << "Código do #" << parts.n_pieces + 1 << " componente: " << std::endl;
@@ -68,7 +68,6 @@ private:
 
 			parts.pieces[parts.n_pieces ++] = static_cast<PIECE_ID> (piece_code);
 		}
-		// std::cout << "Deseja adicionar a pe�a de c�digo <" << piece_code << "> ao or�amento? ";
 
 		std::cout << "Tem certeza de que deseja fazer um orcamento SO <" << so.id << ">? ";
 		if (! input_verification())
@@ -76,7 +75,7 @@ private:
 
 		if (! so_manager->budget_order(so.id, parts, &so))
 		{
-			std::cerr << "Nao conseguiu orcar...\n";
+			std::cerr << "Nao conseguiu orçar...\n";
 			press_anything_to_continue();
 			return;
 		}
@@ -190,7 +189,7 @@ private:
 		if (so.stage == SO_MAINTENANCE)
 			std::cout << "\tc:\tConcluir manutenção da SO\n";
 
-		std::cout << "\tq:\tSair da inspecao\n";
+		std::cout << "\tq:\tSair da inspeção\n";
 		print_n_char('=', 50);
 		print_n_char('\n', 2);
 

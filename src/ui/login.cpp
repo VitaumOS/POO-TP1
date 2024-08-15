@@ -14,10 +14,10 @@ void LoginScreen::check_databases(void)
         throw std::runtime_error("Objeto <SO_Manager> inv�lido para <LoginScreen>");
 
     if (! LoginScreen::so_manager->could_initialize())
-        throw std::runtime_error("SO_Manager n�o p�de ser inicializado. Verificado em LoginScreen");
+        throw std::runtime_error("SO_Manager não pôde ser inicializado. Verificado em LoginScreen");
 
     if (LoginScreen::users_db == nullptr)
-        throw std::runtime_error("Objeto UsersDatabase inv�lido para LoginScreen");
+        throw std::runtime_error("Objeto UsersDatabase inválido para LoginScreen");
 
     if (! LoginScreen::users_db->could_initialize())
         throw std::runtime_error("Não foi possível inicializar o UsersDatabase. Verificado em LoginScreen");

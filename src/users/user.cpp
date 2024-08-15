@@ -50,11 +50,11 @@ void UserScreen::render_menu_header(void) const
 	struct _Date date_of_now;
 	get_date(date_of_now);
 
-	printf("agora: ");
+	printf("Agora: ");
 	std::cout << date_of_now;
 
 	aec_fg_rgb(150, 150, 200);
-	std::cout << "\t\ttempo de uso: ";
+	std::cout << "\t\tTempo de uso: ";
 	struct _Date time_active = date_of_now - interaction_begin;
 	printf("%02hhu:%02hhu:%02hhu [h:m:s]\n", time_active.hour, time_active.minutes, time_active.seconds);
 	aec_reset();

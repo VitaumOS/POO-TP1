@@ -166,7 +166,7 @@ public:
 	/*	Attemps saving the database's state. 
 		For that, closes and re-opens the file-stream. 
 		Returns could_initialize(); that in turn tells whether the procedure was successful. */
-	bool save_state(void) {
+	inline bool save_state(void) {
 		fclose(stream);
 
 		Database::initialize_stream();

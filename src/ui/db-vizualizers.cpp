@@ -38,7 +38,7 @@ int DatabaseInterface::process(void)
 				load_page();
 			}
 			else {
-				cmd_output_buffer += "* Nao ha pagina anterior para mostrar.\n";
+				cmd_output_buffer += "* Não há página anterior para mostrar.\n";
 			}
 			break;
 
@@ -54,7 +54,7 @@ int DatabaseInterface::process(void)
 
 			}
 			else {
-				cmd_output_buffer += "* Nao ha pagina posterior para mostrar.\n";
+				cmd_output_buffer += "* Não há página posterior para mostrar.\n";
 			}
 			break;
 
@@ -105,7 +105,7 @@ int DatabaseInterface::process(void)
 
 		default:
 			sprintf(cstring_buffer, "%c", command);
-			cmd_output_buffer += "* \"" + std::string(cstring_buffer) + "\" nao e reconhecido.\n";
+			cmd_output_buffer += "* \"" + std::string(cstring_buffer) + "\" não é reconhecido.\n";
 			break;
 		}
 	}
@@ -160,10 +160,10 @@ void DatabaseInterface::render_footer(void) const {
 	print_n_char('\n', 2);
 	print_n_char('-', 160); putchar('\n');
 	std::cout << "\tw:\tItem anterior\n";
-	std::cout << "\ts:\tProximo item\n";
-	std::cout << "\ta:\tPagina anterior\n";
-	std::cout << "\td:\tProxima pagina\n";
-	std::cout << "\ti:\tInspecionar elemento\n";
+	std::cout << "\ts:\tPróximp item\n";
+	std::cout << "\ta:\tPágina anterior\n";
+	std::cout << "\td:\tPróxima pagina\n";
+	std::cout << "\ti:\tInspecionar\n";
 	std::cout << "\tq:\tSair do visualizador\n";
 	print_n_char('=', 160);
 	print_n_char('\n', 2);
@@ -172,7 +172,7 @@ void DatabaseInterface::render_footer(void) const {
 
 void DatabaseInterface::render_page(void) const {
 	print_n_char('\n', 10);
-	printf("PAGI EM BRANCO!\n");
+	printf("PÁGINA EM BRANCO!\n");
 	print_n_char('\n', 10);
 }
 
@@ -182,7 +182,7 @@ void DatabaseInterface::color_selected(void) const {
 }
 
 void DatabaseInterface::inspect(void) {
-	std::cout << "NAO ESTA IMPLEMENTADO AINDA!\n";
+	std::cout << "NÃO IMPLEMENTADO\n";
 	char c;
 	std::cin >> c;
 }
@@ -195,7 +195,7 @@ void DatabaseInterface::inspect(void) {
 
 SO_Vizualizer::SO_Vizualizer(SO_Manager * const so_manager) : so_manager(so_manager), vpage(page_size) {
 	if (so_manager == nullptr)
-		throw std::runtime_error("Invalido SO_Manager para SO_Vizualizer.");
+		throw std::runtime_error("Inválido SO_Manager para SO_Vizualizer.");
 }
 
 SO_Vizualizer::~SO_Vizualizer(void) {
@@ -291,10 +291,10 @@ void SO_Vizualizer::render_footer(void) const
 	print_n_char('\n', 2);
 	print_n_char('-', 160); putchar('\n');
 	std::cout << "\tw:\tItem anterior\n";
-	std::cout << "\ts:\tProximo item\n";
-	std::cout << "\ta:\tPagina anterior\n";
-	std::cout << "\td:\tProxima pagina\n";
-	std::cout << "\ti:\tInspecionar elemento\n";
+	std::cout << "\ts:\tPróximo item\n";
+	std::cout << "\ta:\tPágina anterior\n";
+	std::cout << "\td:\tPágina pagina\n";
+	std::cout << "\ti:\tInspecionar SO\n";
 	std::cout << "\tq:\tSair do visualizador\n";
 	print_n_char('=', 160);
 	print_n_char('\n', 2);
@@ -307,7 +307,7 @@ void SO_Vizualizer::render_page(void) const
 	print_n_char('\n', 2);
 
 	printf("Page: #%03llu\n", page_index);
-	fprintf(stdout, "SO-ID\tESTADO\tCLIENT-ID\tHRD\t LBR\t\tDATA DE CRIACAO\t\tDATA UPADA\t\n");
+	fprintf(stdout, "SO-ID\tESTADO\tCLIENT-ID\tHRD\tLBR\t\tDATA CRIAÇÃO\t\tDATA ATT.\t\n");
 	
 	size_t iterator = 0;
 	for (struct ServiceOrder so : SO_Vizualizer::vpage)
@@ -346,12 +346,12 @@ void SO_Vizualizer::print_so(const struct ServiceOrder & so) const
 	std::cout << "SO:\t";
 	switch (so.stage)
 	{
-	case SO_OPEN:			std::cout << "aberto";					break;
-	case SO_BUDGET:			std::cout << "orcado";					break;
-	case SO_MAINTENANCE:	std::cout << "manutencao";				break;
-	case SO_CLOSED:			std::cout << "fechado";					break;
-	case SO_CANCELED:		std::cout << "cancelado";				break;
-	case SO_CLOSED_BUDGET:	std::cout << "fechado apos orcamento";	break;
+	case SO_OPEN:			std::cout << "aberta";					break;
+	case SO_BUDGET:			std::cout << "orçada";					break;
+	case SO_MAINTENANCE:	std::cout << "sob-manutenção";			break;
+	case SO_CLOSED:			std::cout << "fechada";					break;
+	case SO_CANCELED:		std::cout << "cancelada";				break;
+	case SO_CLOSED_BUDGET:	std::cout << "fechada apos orcamento";	break;
 	default:				std::cout << "estado desconhecido";		break;
 	}
 	std::cout << " order\n";
@@ -384,9 +384,8 @@ void SO_Vizualizer::inspect(void)
 	struct ServiceOrder so = vpage[focus_index];
 	SO_Vizualizer::print_so(so);
 
-	printf("NAO ESTA IMPLEMENTADO AINDA\n(DIGITE QUALQUER COISA PARA SAIR)\n");
-	char c;
-	std::cin >> c;
+	printf("NAO ESTA IMPLEMENTADO AINDA\n");
+	press_anything_to_continue();
 }
 
 
@@ -408,13 +407,13 @@ private:
 		clean_screen();
 
 		// header
-		std::cout << "==================================================" << std::endl;
-		std::cout << "\t\tInspecionar usuario" 				  				  << std::endl;
-		std::cout << "--------------------------------------------------" << std::endl;
+		print_n_char('=', width);
+		std::cout << "\t\tInspecionar usuário" << std::endl;
+		print_n_char('=', width);
 
 		// user information
 		printf("\n\n\n");
-		printf("usuario: ");
+		printf("Usuário: ");
 
 		if (! user_data.active)
 		{
@@ -432,11 +431,11 @@ private:
 		// footer
 		print_n_char('\n', 2);
 		print_n_char('-', 50); putchar('\n');
-		std::cout << "\tu:\tmudar o nome de usuario\n";
-		std::cout << "\tp:\tmudar a senha\n";
-		std::cout << "\td:\tDeletar usuario\n";
+		std::cout << "\tu:\tMudar o nome de usuário\n";
+		std::cout << "\tp:\tMudar a senha\n";
+		std::cout << "\td:\tDeletar usuário\n";
 		std::cout << "\tv:\tExibir senha\n";
-		std::cout << "\tq:\tSair da inspecao\n";
+		std::cout << "\tq:\tSair da inspeção\n";
 		print_n_char('=', 50);
 		print_n_char('\n', 2);
 
@@ -470,7 +469,7 @@ private:
 			/*	checking if it is attempting to change to the same... */
 			if (! strcmp(new_username_buffer.c_str(), user_data.username))
 			{
-				std::cout << "O nome de usuario ja esta <" << user_data.username << ">..." << std::endl;
+				std::cout << "O nome de usuário já está <" << user_data.username << ">..." << std::endl;
 				press_anything_to_continue();
 				continue;
 			}
@@ -478,8 +477,8 @@ private:
 			/*	checking if the user already exists on the databse... */
 			if (InspectUser::users_editor->fetch_username(new_username_buffer.c_str()))
 			{
-				std::cout << "Ja existe um usuario com o nome de usuario <" <<  new_username_buffer << ">." << std::endl;
-				std::cout << "Deseja cancelar a renomeacao? ";
+				std::cout << "Já existe um usuário com o nome-de-usuário <" <<  new_username_buffer << ">." << std::endl;
+				std::cout << "Deseja cancelar a renomeação? ";
 				if (input_verification())
 					c_username_loop = false;
 
@@ -503,7 +502,7 @@ private:
 				c_username_loop = false;
 				
 			} else {
-				std::cout << "Cancelar alteracao de nome de usuario? ";
+				std::cout << "Cancelar alteração de nome de usuário? ";
 				if (input_verification()) {
 					c_username_loop = false;
 					break;
@@ -518,7 +517,7 @@ private:
 
 		if (! user_data.active)
 		{
-			std::cout << "Voce nao pode alterar a senha de um usuario inativo no banco de dados...\n";
+			std::cout << "Voce não poderá alterar a senha de um usuário inativo no banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		}
@@ -549,7 +548,7 @@ private:
 				continue;
 			}
 
-			std::cout << "Voce tem certeza que deseja mudar a senha? ";
+			std::cout << "Você tem certeza que deseja mudar a senha? ";
 			if (input_verification())
 			{
 				struct UserData new_user_data = InspectUser::user_data;
@@ -565,7 +564,7 @@ private:
 			}
 			else
 			{
-				std::cout << "Cancelar a mudanca de senha? ";
+				std::cout << "Cancelar a mudança de senha? ";
 				if (input_verification()) {
 					c_password_loop = false;
 					break;
@@ -578,25 +577,25 @@ private:
 	{
 		if (user_data.id.id == 0)
 		{
-			std::cout << "Nao e possivel excluir a chave admin do banco de dados...\n";
+			std::cout << "Não é possível excluir a chave administrador do banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		} 
 		else if (user_data.id.id == users_editor->admin_data.id.id) 
 		{
-			std::cout << "Voce nao pode deletar a si mesmo...\n";
+			std::cout << "Você não poderá deletar a si mesmo enquanto administrador...\n";
 			press_anything_to_continue();
 			return;
 		}
 
 		if (! user_data.active)
 		{
-			std::cout << "O usuario ja foi excluido do banco de dados...\n";
+			std::cout << "O usuário ja foi excluído do banco de dados...\n";
 			press_anything_to_continue();
 			return;
 		}
 
-		std::cout << "Tem certeza de que deseja excluir o usuario <" <<
+		std::cout << "Tem certeza de que deseja excluir o usuário <" <<
 			user_data.username << ">? ";
 		if (! input_verification())
 			return;
@@ -604,7 +603,7 @@ private:
 		user_data.active = false;
 		if (! users_editor->update_userdata(user_data))
 		{
-			std::cerr << "Nao foi possavel excluir o usuario do banco de dados...\n";
+			std::cerr << "Não foi possível excluir o usuário do banco de dados...\n";
 			user_data.active = true;
 
 			press_anything_to_continue();
@@ -703,7 +702,7 @@ void UsersEditor::load_page(void)
 
 	UsersEditor::page_buffer = new struct UserData[UsersEditor::page_size];
 	if (page_buffer == nullptr)
-		throw std::runtime_error("UsersEditor nao conseguiu alocar buffer de pagina...\n");
+		throw std::runtime_error("UsersEditor não conseguiu alocar o buffer de pagina...\n");
 	
 	if (fseek(users_db->stream, users_db->stream_header_size, SEEK_SET) == 0) {
 		last_qtt_read = fread(UsersEditor::page_buffer, sizeof(struct UserData), page_size, users_db->stream);
@@ -782,7 +781,7 @@ void UsersEditor::render_page(void) const {
 	print_n_char('\n', 2);
 
 	printf("Page: #%03llu\n", page_index);
-	fprintf(stdout, "INDEX\tTIPO\t\tRELATIVE-ID\t\t\tNOME DE USUARIO\t\t\tDATA DE CRIACAO\t\tDATA UPADA\t\n");
+	fprintf(stdout, "ÍNDICE\tTIPO\t\tRELATIVE-ID\t\t\tNOME DE USUÁRIO\t\t\tDATA CRIAÇÃO\t\tDATA ATT.\t\n");
 	
 	/*  current's page first index. */
 	const size_t index = page_index * page_size;
@@ -846,7 +845,7 @@ void UsersEditor::new_user(void)
 	bool new_user_loop = true;
 	while (new_user_loop)
 	{
-		std::cout << "Qual e o tipo de usuario? ";
+		std::cout << "Qual é o tipo de usuário? ";
 		std::cin >> type_string_buffer;
 		std::cin.clear(); std::cin.ignore(INT64_T_MAX, '\n');
 
@@ -863,11 +862,11 @@ void UsersEditor::new_user(void)
 			the_user_type = USER_TYPE_MCH;
 		}
 		else {
-			std::cerr << "Irreconhecido tipo de usuario...";
+			std::cerr << "Tipo de usuário irreconhecido...";
 			continue;
 		}
 
-		std::cout << "Nome de usuario: ";
+		std::cout << "Nome de usuário: ";
 		std::cin >> username_string_buffer;
 		username_string_buffer.resize(username_string_length);
 
@@ -879,7 +878,7 @@ void UsersEditor::new_user(void)
 
 		std::cin.clear(); std::cin.ignore(INT64_T_MAX, '\n');
 
-		std::cout << "Voce deseja registrar um novo usuario <" << username_string_buffer << ">? ";
+		std::cout << "Vôcê deseja registrar um novo usuário <" << username_string_buffer << ">? ";
 		if (! input_verification()) {
 			std::cout << "Sair do registramento? ";
 			if (input_verification()) {

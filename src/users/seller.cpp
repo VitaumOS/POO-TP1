@@ -38,7 +38,7 @@ private:
         if (so.stage < SO_CLOSED)
             std::cout << "\tc:\tFechar ordem\n";
 
-        std::cout << "\tq:\tSair da inspe��o\n";
+        std::cout << "\tq:\tSair da inspeção\n";
         print_n_char('=', 50);
         print_n_char('\n', 2);
         
@@ -56,20 +56,20 @@ private:
             return;
 
         std::cout << "Deseja aprovar ordem de id \"" << so.id << "\"?";
-        std::cout << "(Em caso positivo, a ordem ser� encaminhada para os mec�nicos para a manuten��o) ";
+        std::cout << "(Em caso positivo, a ordem será encaminhada para os mecânicos para a manutenção) ";
         if (! input_verification())
             return;
 
         if (SellerInspectSO::so_manager->operate_order(so.id, &so)) 
         {
             SellerInspectSO::feedback_err_buffer +=
-                "A ordem p�de ser encaminhada com sucesso para o estado de manuten��o...";
+                "A ordem pôde ser encaminhada com sucesso para o estado de manutenção...";
             positive_highlight = true;
             altered = true;
         }
         else {
             SellerInspectSO::feedback_err_buffer +=
-                "A ordem n�o p�de ser encaminhada com sucesso para o estao de manute��o...";
+                "A ordem não pôde ser encaminhada com sucesso para o estao de manutenção��o...";
         }
     }
     
@@ -179,9 +179,9 @@ private:
         print_n_char('\n', 2);
         print_n_char('-', 10); putchar('\n');
         std::cout << "\tw:\tItem anterior\n";
-        std::cout << "\ts:\tProximo item\n";
-        std::cout << "\ta:\tPagina anterior\n";
-        std::cout << "\td:\tProxima pagina\n";
+        std::cout << "\ts:\tPróximo item\n";
+        std::cout << "\ta:\tPágina anterior\n";
+        std::cout << "\td:\tPróxima pagina\n";
         std::cout << "\ti:\tInspecionar ordem\n";
         
         std::cout << "\tf:\t";
@@ -192,7 +192,7 @@ private:
             break;
 
         case 1:
-            std::cout << "Filtrar por ordens orcamentadas";
+            std::cout << "Filtrar por ordens orçamentadas";
             break;
 
         case 2:
@@ -218,25 +218,24 @@ private:
             return;
         }
 
-        std::cout << "Qual e o seu problema?\t";
+        std::cout << "Qual é o seu problema?\t";
 
-        std::string issue;
-        std::cin >> issue;
-        issue.resize(SO_DESCRIPTION_SIZE);
+        char issue_description[SO_DESCRIPTION_SIZE];
+        std::cin.getline(issue_description, SO_DESCRIPTION_SIZE);
 
         std::cout << "Deseja abrir uma SO para <" << client_buffer.person.name << ">? ";
 
         if (! input_verification())
         {
-            std::cerr << "cancl\n";
+            std::cerr << "Nova ordem cancelada...\n";
             press_anything_to_continue();
             return;
         }
 
         struct ServiceOrder so_buffer;
-        if (! so_manager->new_order(issue.c_str(), client_buffer.id, &so_buffer))
+        if (! so_manager->new_order(issue_description, client_buffer.id, &so_buffer))
         {
-            std::cout << "falhou...\n";
+            std::cout << "Falhou...\n";
             press_anything_to_continue();
             return;
         }
@@ -312,9 +311,9 @@ private:
         print_n_char('\n', 2);
         print_n_char('-', 10); putchar('\n');
         std::cout << "\tw:\tItem anterior\n";
-        std::cout << "\ts:\tProximo item\n";
-        std::cout << "\ta:\tPagina anterior\n";
-        std::cout << "\td:\tProxima pagina\n";
+        std::cout << "\ts:\tPróximo item\n";
+        std::cout << "\ta:\tPágina anterior\n";
+        std::cout << "\td:\tPróxima página\n";
         std::cout << "\tq:\tSair do visualizador\n";
         print_n_char('=', 50);
         print_n_char('\n', 2);
@@ -373,15 +372,15 @@ int Seller::render(void) const
             (unsigned long long) client_buffer.id.vehicle_id);
 
         printf("\tPessoa\t|\tnome: %s\n", client_buffer.person.name);
-        std::cout << "\tVeiculo\t|\ttipo: " << client_buffer.vehicle.type << ", modelo: "
-            << client_buffer.vehicle.model << ", kilometragem: "
+        std::cout << "\tVeículo\t|\ttipo: " << client_buffer.vehicle.type << ", modelo: "
+            << client_buffer.vehicle.model << ", quilometragem: "
             << client_buffer.vehicle.mileage << std::endl;
         std::cout << "\tdata de registro: ";
         std::cout << client_buffer.registry_date << std::endl << std::endl;
 
     }
     else {
-        printf("(cliente nao carregado...)\n\n");
+        printf("(Cliente não carregado...)\n\n");
     }
 
     /*  footer: interaction guide */
@@ -391,8 +390,8 @@ int Seller::render(void) const
     std::cout << "1\t->\tSair" << std::endl;
     std::cout << "2\t->\tRegistrar um cliente" << std::endl;
     std::cout << "3\t->\tCarregar um cliente" << std::endl;
-    std::cout << "4\t->\tVizualizer histórico do cliente" << std::endl;
-    std::cout << "5\t->\tNavegar sobre ordens de servico" << std::endl;
+    std::cout << "4\t->\tVisualizar histórico do cliente" << std::endl;
+    std::cout << "5\t->\tNavegar sobre ordens de serviço" << std::endl;
 
     fflush(stdout);
     return 0;
@@ -462,7 +461,7 @@ void Seller::show_so_history(void) {
 // * updated
 void Seller::register_client(void) {
     /*  warning */
-    std::cout << "(Cuide a entrada dos dados a seguir)" << std::endl;
+    std::cout << "(Cuide a entrada dos dados a seguir.)" << std::endl;
     press_anything_to_continue();
 
     /*  person's name */
@@ -475,11 +474,11 @@ void Seller::register_client(void) {
     }
 
     /*  vehicle's type */
-    std::cout << "Qual é o tipo do ve�culo (Ex: carro, moto, etc...)?\t";
+    std::cout << "Qual é o tipo do veículo (Ex: carro, moto, etc...)?\t";
     std::cin.getline(client_buffer.vehicle.type, NAME_SIZE);
     
     /*  vehicle's model */
-    std::cout << "Qual é o modelo do ve�culo?\t\t\t\t";
+    std::cout << "Qual é o modelo do veículo?\t\t\t\t";
     std::cin.getline(client_buffer.vehicle.model, NAME_SIZE);
 
     /*  vehicle's mileage */
@@ -488,11 +487,11 @@ void Seller::register_client(void) {
         std::cin >> client_buffer.vehicle.mileage;
         clean_stdin();
         
-    } while ((client_buffer.vehicle.mileage < 0) && (std::cout << "Entrada inv�lida para kilometragem. Redigite-a:\t\t"));
+    } while ((client_buffer.vehicle.mileage < 0) && (std::cout << "Entrada inválida para quilometragem. Redigite-a:\t\t"));
 
 
     // TODO: deixar meió
-    printf("Pessoa\t| Nome: %-64s;\nVeículo\t| Modelo: %s, tipo: %s, kilometragem: %d\n",
+    printf("Pessoa\t| Nome: %-64s;\nVeículo\t| Modelo: %s, tipo: %s, quilometragem: %d\n",
         client_buffer.person.name,
         client_buffer.vehicle.model, client_buffer.vehicle.type, (int) client_buffer.vehicle.mileage);
     
@@ -569,14 +568,14 @@ bool Seller::load_client_interface(void) {
 
         the_client_data = static_cast<struct ClientData> (* std::next(all_client_data.begin(), focus_index));
 
-        printf("\t\tVeiculo #%llu/%llu:\n", (unsigned long long) (focus_index + 1), (unsigned long long) all_client_data.size());
-        printf("\t\tmodelo: %s, tipo: %s, kilometragem: %llu\n",
+        printf("\t\tVeículo #%llu/%llu:\n", (unsigned long long) (focus_index + 1), (unsigned long long) all_client_data.size());
+        printf("\t\tmodelo: %s, tipo: %s, quilometragem: %llu\n",
             the_client_data.vehicle.model, the_client_data.vehicle.type,
             (unsigned long long) the_client_data.vehicle.mileage);
 
-        printf("\n\na: Veiculo anterior\n");
-        printf("d: Veiculo posterior\n");
-        printf("q: Sair (confirmar selecao)\n");
+        printf("\n\na: Veículo anterior\n");
+        printf("d: Veículo posterior\n");
+        printf("q: Sair (confirmar seleção)\n");
 
         std::cin >> command;
         switch (command){

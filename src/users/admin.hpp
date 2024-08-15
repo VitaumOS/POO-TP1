@@ -16,17 +16,16 @@
 
 class Administrator : virtual public UserScreen {
 private:
-    
+    friend class UsersEditor;
+
     void edit_users(void);
-    
+
     int render(void) const override;
     int process(void) override;
 
 public:
     Administrator(class SO_Manager * const, class UsersDatabase * const, const struct MinimalUserData &);
     virtual ~Administrator(void);
-
-    friend class UsersEditor;
 };
 
 
