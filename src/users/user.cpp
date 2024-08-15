@@ -37,6 +37,13 @@ int UserScreen::interact(void)
 		process();
 	}
 
+	if (! users_db->logout(user_data.id))
+	{
+		std::cerr << "Algo deu errado enquanto tentando deslogar no sistema...\n";
+		press_anything_to_continue();
+		return 1;
+	}
+
 	return 0;
 }
 

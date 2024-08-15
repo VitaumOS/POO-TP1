@@ -394,6 +394,7 @@ bool UsersDatabase::logout(const user_id_t & id) const {
     if (user_index < 0)
         return false;
 
+    // IDÉIA PENDENTE...
     // if (! user_data.logged) return false;
 
     // struct _Date date_of_now;
@@ -404,8 +405,8 @@ bool UsersDatabase::logout(const user_id_t & id) const {
     // user_data.last_session_time += session_time;
     // user_data.total_session-time += session_time;
 
-    if (! write_element(user_index, &user_data))
-        return false;
+    // if (! write_element(user_index, &user_data))
+    //    return false;
     
     /*  (...) */
 
