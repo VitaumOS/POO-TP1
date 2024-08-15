@@ -2,8 +2,6 @@
     
     Defines the homogenous database model used throughtout the program. */
 
-/*	Last update: 08/08/2024. */
-
 
 #ifndef _DATABASES_HPP_INCLUDED_
 #define _DATABASES_HPP_INCLUDED_

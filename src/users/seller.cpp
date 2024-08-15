@@ -194,7 +194,7 @@ private:
         case 1:
             std::cout << "Filtrar por ordens orçamentadas";
             break;
-
+        
         case 2:
             std::cout << "Mostrar todas as ordens";
             break;
@@ -218,6 +218,8 @@ private:
             return;
         }
 
+        clean_stdin();
+        
         std::cout << "Qual é o seu problema?\t";
 
         char issue_description[SO_DESCRIPTION_SIZE];
@@ -516,7 +518,7 @@ bool Seller::get_client(struct ClientData & client_buffer) {
 
         if (! Seller::load_client_interface())
         {
-            std::cout << "Nao foi possivel carregar o cliente.\n";
+            std::cout << "Não foi possível carregar o cliente.\n";
             MenuScreen::press_anything_to_continue();
             return false;
         }

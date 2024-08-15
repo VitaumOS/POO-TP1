@@ -194,7 +194,10 @@ public:
 
 
 /*	Standard UI and graphical tools 
- *	------------------------------- */
+ *	
+ 
+ 
+ ---------------- */
 
 constexpr size_t literal_string_length(const char * _String)
 {

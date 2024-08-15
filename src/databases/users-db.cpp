@@ -2,8 +2,6 @@
 
     Defines the users database. */
 
-/*	Last update: 03/08/2024. */
-
 
 #include "users-db.hpp"
 #include <string.h>	// for strcpy, strcmp

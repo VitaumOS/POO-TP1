@@ -2,7 +2,6 @@
 
     Declares the service-orders (SOs) database. */
 
-/*	Last update: 20/07/2024. */
 
 
 #ifndef _SERVICEORDER_DB_HPP_INCLUDED_

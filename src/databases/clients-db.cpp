@@ -48,7 +48,7 @@ ClientsManager::~ClientsManager(void) {
 	#endif
 
 	if (! ClientsManager::update_stream_header())
-		std::cerr << "N�o foi poss�vel gravar o cabe�alho do stream em ClientsManager." << std::endl;
+		std::cerr << "Não foi possível gravar o cabeçalho do stream em ClientsManager." << std::endl;
 
 	finalize_stream();
 }

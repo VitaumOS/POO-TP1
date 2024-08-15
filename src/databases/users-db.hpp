@@ -2,7 +2,6 @@
 
     Declares the users database. */
 
-/*	Last update: 21/07/2024. */
 
 
 #ifndef _USERS_DATABASE_HPP_INCLUDED_
