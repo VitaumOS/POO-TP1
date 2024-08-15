@@ -69,7 +69,7 @@ private:
         }
         else {
             SellerInspectSO::feedback_err_buffer +=
-                "A ordem não pôde ser encaminhada com sucesso para o estao de manutenção��o...";
+                "A ordem não pôde ser encaminhada com sucesso para o estao de manutenção...";
         }
     }
     
