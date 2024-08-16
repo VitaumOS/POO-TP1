@@ -50,7 +50,7 @@ struct ServiceOrder {
     client_id_t client_id;          // The client's ID for the SO.
 
     char issue_description[SO_DESCRIPTION_SIZE];
-    // char addressed_description[SO_DESCRIPTION_SIZE];
+    char addressed_description[SO_DESCRIPTION_SIZE];
 
     // Budget and pricing.
     struct PartsBudget budget;  // Contains the budget information for all the parts.
@@ -86,13 +86,6 @@ private:
         return sum;
     }
 
-    currency_t calculate_labor_price(const struct ServiceOrder & SO) const {
-    #define DEFAULT_LABOR_PRICE     ((currency_t) 10000)
-    #define LINEAR_COEFFICIENT      ((double) 0.1)
-
-        return DEFAULT_LABOR_PRICE + ((currency_t) (LINEAR_COEFFICIENT * SO.hardware_price));
-    }
-
 public:
     ClientsManager client_manager;
 
@@ -104,10 +97,13 @@ public:
         struct ServiceOrder * return_so);
     
     /*  Attempts budgeting an open service-order in the database. */
-    bool budget_order(const so_id_t id, const struct PartsBudget & parts_budget, struct ServiceOrder * return_so);
+    bool budget_order(const so_id_t id, currency_t labor_price, const struct PartsBudget & parts_budget, struct ServiceOrder * return_so);
 
     /*  Attempts opening a service-order in the database as over maintenance. */
     bool operate_order(const so_id_t id, struct ServiceOrder * return_so);
+
+    /*  Attempts concluding a service-order over maintenance. */
+    bool conclude_order(const so_id_t id, const char addressed[SO_DESCRIPTION_SIZE], struct ServiceOrder *);
 
     /*  Attempts closing a service-oder in the database. */
     bool close_order(const so_id_t id, struct ServiceOrder * return_so);

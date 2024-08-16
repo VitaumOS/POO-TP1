@@ -69,11 +69,18 @@ private:
 			parts.pieces[parts.n_pieces ++] = static_cast<PIECE_ID> (piece_code);
 		}
 
-		std::cout << "Tem certeza de que deseja fazer um orcamento SO <" << so.id << ">? ";
+		long double budget_value = 0;
+		std::cout << "Qual é o seu orçamento para o serviço?";
+		std::cin >> budget_value;
+		clean_stdin();
+
+		currency_t labor = static_cast<currency_t> (budget_value * 100.0L);
+
+		std::cout << "Tem certeza de que deseja fazer um orçamento para a SO #" << so.id << "? ";
 		if (! input_verification())
 			return;
 
-		if (! so_manager->budget_order(so.id, parts, &so))
+		if (! so_manager->budget_order(so.id, labor, parts, &so))
 		{
 			std::cerr << "Nao conseguiu orçar...\n";
 			press_anything_to_continue();
@@ -222,11 +229,17 @@ private:
 		if (so.stage != SO_MAINTENANCE)
 			return;
 		
+		std::cout << "Mensagem adicional de conclusão: ";
+		
+		char addressed[SO_DESCRIPTION_SIZE];
+		std::cin.getline(addressed, SO_DESCRIPTION_SIZE);
+		clean_stdin();
+
 		std::cout << "Deseja realmente fechar a so #" << so.id << " ? ";
 		if (! input_verification())
 			return;
 
-		if (! so_manager->close_order(so.id, &so))
+		if (! so_manager->conclude_order(so.id, addressed, &so))
 		{
 			std::cerr << "Por algum erro no sistema, a ordem #" << so.id << " não pôde ser atualizada apropriadamente..."
 				<< std::endl;

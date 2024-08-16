@@ -878,7 +878,7 @@ void UsersEditor::new_user(void)
 
 		std::cin.clear(); std::cin.ignore(INT64_T_MAX, '\n');
 
-		std::cout << "Vôcê deseja registrar um novo usuário <" << username_string_buffer << ">? ";
+		std::cout << "Você deseja registrar um novo usuário <" << username_string_buffer << ">? ";
 		if (! input_verification()) {
 			std::cout << "Sair do registramento? ";
 			if (input_verification()) {

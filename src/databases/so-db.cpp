@@ -2,8 +2,6 @@
 
 	Defines the service-orders (SOs) database. */
 
-/*	Last update: 03/08/2024. */
-
 
 #include "so-db.hpp"
 #include <string.h>	// for strcpy, strcmp
@@ -11,6 +9,7 @@
 #include <stdexcept>
 #include <assert.h>
 #include <iterator>
+
 
 struct SOM_stream_header {
 	Id_t item_qtt = 0;
@@ -122,7 +121,9 @@ bool SO_Manager::new_order(const char issue[SO_DESCRIPTION_SIZE], const client_i
 		.id = item_qtt,
 		.stage = SO_OPEN,
 		.client_id = client_id,
-		.issue_description = "undef",
+		.issue_description = "",
+		.addressed_description = "",
+
 		.budget = {
 			.n_pieces = 0,  .pieces = { (PIECE_ID) 0 }
 			},
@@ -157,7 +158,7 @@ bool SO_Manager::new_order(const char issue[SO_DESCRIPTION_SIZE], const client_i
 	\return The function's return is the success of updating the SO. Fails in case of data inconsistency
 	or IO problems. In case of success, <return_so> will be returned matching the newly updated SO.
 	Its state is unchanced from input in case of failure. */
-bool SO_Manager::budget_order(const so_id_t id, const struct PartsBudget & parts_budget, struct ServiceOrder * return_so)
+bool SO_Manager::budget_order(const so_id_t id, currency_t labor_price, const struct PartsBudget & parts_budget, struct ServiceOrder * return_so)
 {
 	// Validating the SO ID.
 	if (id >= item_qtt)
@@ -188,7 +189,7 @@ bool SO_Manager::budget_order(const so_id_t id, const struct PartsBudget & parts
 	target_so.stage = SO_BUDGET;
 	target_so.budget = parts_budget;
 	target_so.hardware_price = sum_hardware_budget(parts_budget);
-	target_so.labor_price = calculate_labor_price(target_so);
+	target_so.labor_price = labor_price;
 
 	if (write_element(id, &target_so))
 	{
@@ -229,6 +230,7 @@ bool SO_Manager::operate_order(const so_id_t id, struct ServiceOrder * return_so
 
 	target_so.update_date = date_of_now;
 	target_so.stage = SO_MAINTENANCE;
+	// strcpy(target_so.addressed_description, addressed);
 
 	if (write_element(id, &target_so))
 	{
@@ -278,6 +280,37 @@ bool SO_Manager::close_order(const so_id_t id, struct ServiceOrder * return_so)
 	fprintf(stderr, "[%s] Não conseguiu upar o <SO>.\n", __func__);
 	return false;
 
+}
+
+/*	*/
+bool SO_Manager::conclude_order(const so_id_t id, const char addressed[SO_DESCRIPTION_SIZE], struct ServiceOrder * return_so) {
+	if (id >= item_qtt)	// Validating the SO ID.
+		return false;
+
+	ServiceOrder target_so;	// Retrieving the SO.
+	if (! read_element(id, &target_so))
+		return false;
+
+	if (target_so.stage != SO_MAINTENANCE)	// Validating the stage.
+		return false;
+	
+	target_so.stage = SO_CLOSED;
+
+	Date date_of_now;
+	if (! get_date(date_of_now))
+		return false;
+
+	target_so.update_date = date_of_now;
+	strcpy(target_so.addressed_description, addressed);
+
+	if (write_element(id, &target_so))
+	{
+		* return_so = target_so;
+		return true;
+	}
+
+	fprintf(stderr, "[%s] Não conseguiu upar o <SO>.\n", __func__);
+	return false;
 }
 
 /*	Advances a SO to its next stage.
@@ -431,79 +464,6 @@ inline void SO_Manager::fprint_element(FILE * _OutputStream, const ServiceOrder 
 		((double) _SO->hardware_price) / ((double) 100.0), ((double) _SO->labor_price) / ((double) 100.0));
 
 	fprintf(_OutputStream, " [%-16s]", _SO->issue_description);
+	fprintf(_OutputStream, " [%-16s]", _SO->addressed_description);
 }
 
-
-
-#if 0
-size_t SO_Manager::print_vpage(size_t vpage_index, size_t focus_index)
-{
-	constexpr size_t page_size = 10;
-	size_t index = page_size * vpage_index;
-
-	if (index >= item_qtt)	// exceeded
-		return 0;
-
-	struct ServiceOrder so_buffer[page_size];
-
-	size_t qtt_read = read_elements(index, page_size, so_buffer);
-	size_t iterator = 0;
-	for (; iterator < qtt_read; iterator ++)
-	{
-		if (iterator == focus_index)
-		{
-			aec_bg_rgb(239, 203, 104);
-			aec_fg_rgb(22, 12, 40);
-			fprintf(stdout, "[%03llu] ", index + iterator);
-			fprint_element(stdout, &so_buffer[iterator]);
-			aec_reset();
-			putchar('\n');
-		}
-		else {
-			fprintf(stdout, "[%03llu] ", index + iterator);
-			fprint_element(stdout, &so_buffer[iterator]);
-			putchar('\n');
-		}
-	}
-
-	while (iterator < page_size) {
-		fprintf(stdout, "[%03llu] ", index + (iterator ++));
-		print_n_char('-', 3);
-		printf(" / * / ");
-		print_n_char('-', 3);
-		putchar('\n');
-	}
-
-	return qtt_read;
-}
-
-void SO_Manager::so_vizualizer(void) 
-{
-	cmd_input_buffer.clear();
-	cmd_output_buffer.clear();
-	
-	const size_t vpage_index_max = item_qtt / page_size;
-
-	while (running_menu) {
-		/*	Rendering: header */
-		clean_screen();
-		SO_Manager::render_header();
-
-		/*	Rendering: body */
-		print_n_char('\n', 2);
-
-		printf("Page: #%03llu\n", vpage_index);
-		fprintf(stdout, "SO-ID\tESTADO\t\tDATA DE CRIAÇÃO\tDATA DO UPDATE\t\n");
-		last_qtt_read = SO_Manager::print_vpage(vpage_index, focus_index);
-
-		/*	Rendering: footer */
-		SO_Manager::render_footer();
-
-		/*	Input / Output	*/
-		SO_Manager::process_io(vpage_index_max);
-	}
-	running_menu = true;
-
-	clean_screen();
-}
-#endif // 0
